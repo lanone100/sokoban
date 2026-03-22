@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Cubic Mind — 推箱子 | 横版PC·灵动多关卡</title>
+<title>Cubic Mind — 推箱子 | 特效音效·典雅竖版</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@200;300;400&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -38,8 +38,7 @@
   --grid-gap: 5px;
   --tile-size: 52px;
   --tile-radius: 12px;
-  --game-max-width: 460px;
-  --right-panel-width: 280px;
+  --game-max-width: 500px;
 }
 
 [data-theme="dark"] {
@@ -88,7 +87,7 @@ body {
 [data-theme="dark"] .orb { opacity: 0.6; }
 @keyframes float { from { transform: translate(0, 0) scale(1); } to { transform: translate(30px, 20px) scale(1.05); } }
 
-/* 主容器：默认为竖向卡片 (移动端) */
+/* 主容器：始终竖向卡片布局 */
 .game-container {
   position: relative;
   z-index: 1;
@@ -102,16 +101,8 @@ body {
   padding: 24px 22px 24px;
   box-shadow: var(--shadow-lg);
   transition: all 0.3s ease;
+  margin: 0 auto;
 }
-
-/* 默认各区块顺序为块级 */
-.game-header { margin-bottom: 0; }
-.game-stats-row { margin: 16px 0 14px; }
-.game-grid { margin: 0 auto; }
-.game-hint { margin-top: 12px; }
-.game-legend { margin-top: 16px; }
-.game-controls { margin-top: 20px; }
-.game-kbd { margin-top: 12px; text-align: center; }
 
 /* 头部区域 */
 .header {
@@ -147,6 +138,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  margin: 16px 0 14px;
 }
 .stats-bar { display: flex; gap: 8px; flex: 2; }
 .stat-pill {
@@ -220,8 +212,35 @@ body {
 }
 @keyframes playerPop { from { transform: scale(0.9); } to { transform: scale(1); } }
 
+/* 粒子特效专用动画 */
+@keyframes ripple {
+  0% { transform: scale(0.2); opacity: 0.8; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+.ripple-effect {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,215,0,0.6) 0%, rgba(255,100,0,0) 70%);
+  pointer-events: none;
+  animation: ripple 0.4s ease-out forwards;
+  z-index: 10;
+}
+.flash-effect {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 80%);
+  pointer-events: none;
+  animation: fadeOut 0.2s ease-out forwards;
+  z-index: 10;
+}
+@keyframes fadeOut {
+  from { opacity: 1; transform: scale(0.8); }
+  to { opacity: 0; transform: scale(1.2); }
+}
+
 /* 方向按键区 */
-.controls-section { margin-top: 0; }
+.controls-section { margin-top: 20px; }
 .dpad {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
   width: 160px; margin: 0 auto;
@@ -275,14 +294,14 @@ body {
 .win-btn.secondary { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); box-shadow: none; }
 
 /* 提示栏 */
-.hint-bar { display: none; padding: 10px 14px; background: rgba(88,86,214,0.08); border: 1px solid rgba(88,86,214,0.2); border-radius: 20px; font-size: 12px; color: var(--accent-indigo); line-height: 1.4; text-align: center; }
+.hint-bar { display: none; padding: 10px 14px; background: rgba(88,86,214,0.08); border: 1px solid rgba(88,86,214,0.2); border-radius: 20px; font-size: 12px; color: var(--accent-indigo); line-height: 1.4; text-align: center; margin-top: 12px; }
 .hint-bar.show { display: block; }
-.kbd-hint { font-size: 10px; color: var(--text-tertiary); }
+.kbd-hint { margin-top: 12px; text-align: center; font-size: 10px; color: var(--text-tertiary); }
 kbd { display: inline-block; padding: 1px 5px; margin: 0 2px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 5px; font-size: 10px; color: var(--text-secondary); }
 
 /* 图例 */
 .legend {
-  display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;
+  display: flex; justify-content: center; gap: 14px; margin-top: 16px; flex-wrap: wrap;
 }
 .legend-item { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-tertiary); }
 .legend-dot { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
@@ -291,52 +310,16 @@ kbd { display: inline-block; padding: 1px 5px; margin: 0 2px; background: var(--
 .ld-done   { background: linear-gradient(135deg, #30d158, #1a9e42); border-radius: 4px; }
 .ld-target { border: 2px dashed var(--tile-target-border); background: var(--tile-target-bg); }
 
-/* ========= 横版布局 (PC宽屏) ========= */
-@media (min-width: 860px) {
-  :root {
-    --tile-size: 58px;
-    --tile-radius: 14px;
-    --game-max-width: 1000px;
-  }
-  .game-container {
-    max-width: var(--game-max-width);
-    display: grid;
-    grid-template-columns: 1fr var(--right-panel-width);
-    gap: 28px;
-    padding: 28px 32px;
-    align-items: start;
-  }
-  /* 左侧区域：网格 */
-  .game-grid {
-    grid-column: 1 / 2;
-    margin: 0;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-  /* 右侧面板组合所有其他内容 */
-  .game-header { grid-column: 2 / 3; grid-row: 1; margin-bottom: 8px; }
-  .game-stats-row { grid-column: 2 / 3; grid-row: 2; margin: 0 0 16px 0; }
-  .game-legend { grid-column: 2 / 3; grid-row: 3; margin: 12px 0 8px; }
-  .game-controls { grid-column: 2 / 3; grid-row: 4; margin-top: 12px; }
-  .game-hint { grid-column: 2 / 3; grid-row: 5; margin-top: 12px; }
-  .game-kbd { grid-column: 2 / 3; grid-row: 6; margin-top: 16px; text-align: center; }
-
-  /* 右侧内部微调 */
-  .stats-row { flex-direction: column; align-items: stretch; gap: 10px; }
-  .stats-bar { width: 100%; }
-  .level-nav { justify-content: center; margin-top: 4px; }
-  .dpad { width: 180px; }
-  .action-bar { gap: 10px; }
-  .legend { justify-content: flex-start; flex-wrap: wrap; }
-  .win-overlay { border-radius: 36px; left: 0; right: 0; }
-}
-
-/* 移动端微调 */
+/* 响应式调整 */
 @media (max-width: 480px) {
   :root { --tile-size: 44px; --tile-radius: 10px; }
   .game-container { padding: 18px 16px 20px; }
   .title { font-size: 19px; }
+}
+@media (min-width: 768px) {
+  :root { --tile-size: 58px; --tile-radius: 14px; --game-max-width: 560px; }
+  .game-container { padding: 32px 28px 28px; }
+  .stats-row { margin: 20px 0 18px; }
 }
 </style>
 </head>
@@ -357,68 +340,54 @@ kbd { display: inline-block; padding: 1px 5px; margin: 0 2px; background: var(--
   </div>
 
   <!-- 头部区域 -->
-  <div class="game-header">
-    <div class="header">
-      <div class="title-group"><div class="title">CUBIC <span>MIND</span></div><div class="subtitle">推箱子 · 灵境</div></div>
-      <button class="theme-btn" id="themeBtn" aria-label="切換模式"><span class="theme-icon" id="themeIcon">🌙</span></button>
-    </div>
+  <div class="header">
+    <div class="title-group"><div class="title">CUBIC <span>MIND</span></div><div class="subtitle">推箱子 · 灵境</div></div>
+    <button class="theme-btn" id="themeBtn" aria-label="切換模式"><span class="theme-icon" id="themeIcon">🌙</span></button>
   </div>
 
   <!-- 统计与关卡导航 -->
-  <div class="game-stats-row">
-    <div class="stats-row">
-      <div class="stats-bar">
-        <div class="stat-pill"><div class="stat-label">步數</div><div class="stat-value" id="moveCount">0</div></div>
-        <div class="stat-pill"><div class="stat-label">完成</div><div class="stat-value green" id="doneCount">0 / <span id="totalBoxes">0</span></div></div>
-      </div>
-      <div class="level-nav">
-        <button class="level-nav-btn" id="prevLevelBtn">◀</button>
-        <span class="level-nav-text" id="levelDisplay">Lv.1/<span id="totalLevelsSpan">4</span></span>
-        <button class="level-nav-btn" id="nextLevelBtn">▶</button>
-      </div>
+  <div class="stats-row">
+    <div class="stats-bar">
+      <div class="stat-pill"><div class="stat-label">步數</div><div class="stat-value" id="moveCount">0</div></div>
+      <div class="stat-pill"><div class="stat-label">完成</div><div class="stat-value green" id="doneCount">0 / <span id="totalBoxes">0</span></div></div>
+    </div>
+    <div class="level-nav">
+      <button class="level-nav-btn" id="prevLevelBtn">◀</button>
+      <span class="level-nav-text" id="levelDisplay">Lv.1/<span id="totalLevelsSpan">4</span></span>
+      <button class="level-nav-btn" id="nextLevelBtn">▶</button>
     </div>
   </div>
 
   <!-- 游戏网格区域 -->
-  <div class="game-grid">
-    <div id="grid"></div>
-  </div>
+  <div id="grid"></div>
 
   <!-- 图例 -->
-  <div class="game-legend">
-    <div class="legend">
-      <div class="legend-item"><div class="legend-dot ld-player"></div><span>玩家</span></div>
-      <div class="legend-item"><div class="legend-dot ld-box"></div><span>箱子</span></div>
-      <div class="legend-item"><div class="legend-dot ld-done"></div><span>已归位</span></div>
-      <div class="legend-item"><div class="legend-dot ld-target"></div><span>目標點</span></div>
-    </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot ld-player"></div><span>玩家</span></div>
+    <div class="legend-item"><div class="legend-dot ld-box"></div><span>箱子</span></div>
+    <div class="legend-item"><div class="legend-dot ld-done"></div><span>已归位</span></div>
+    <div class="legend-item"><div class="legend-dot ld-target"></div><span>目標點</span></div>
   </div>
 
   <!-- 方向 & 动作控制 -->
-  <div class="game-controls">
-    <div class="controls-section">
-      <div class="dpad">
-        <div></div><button class="dpad-btn" id="btnUp" data-dir="up">▲</button><div></div>
-        <button class="dpad-btn" id="btnLeft" data-dir="left">◀</button><div class="center-empty"></div>
-        <button class="dpad-btn" id="btnRight" data-dir="right">▶</button>
-        <div></div><button class="dpad-btn" id="btnDown" data-dir="down">▼</button><div></div>
-      </div>
-      <div class="action-bar">
-        <button class="action-btn btn-restart" id="restartBtn">↩ 重来</button>
-        <button class="action-btn btn-hint" id="hintBtn">💡 提示</button>
-      </div>
+  <div class="controls-section">
+    <div class="dpad">
+      <div></div><button class="dpad-btn" id="btnUp" data-dir="up">▲</button><div></div>
+      <button class="dpad-btn" id="btnLeft" data-dir="left">◀</button><div class="center-empty"></div>
+      <button class="dpad-btn" id="btnRight" data-dir="right">▶</button>
+      <div></div><button class="dpad-btn" id="btnDown" data-dir="down">▼</button><div></div>
+    </div>
+    <div class="action-bar">
+      <button class="action-btn btn-restart" id="restartBtn">↩ 重来</button>
+      <button class="action-btn btn-hint" id="hintBtn">💡 提示</button>
     </div>
   </div>
 
   <!-- 提示条 -->
-  <div class="game-hint">
-    <div class="hint-bar" id="hintBar">✨ 轻点提示获得指引</div>
-  </div>
+  <div class="hint-bar" id="hintBar">✨ 轻点提示获得指引</div>
 
   <!-- 键盘提示 -->
-  <div class="game-kbd">
-    <div class="kbd-hint">⌨️ 键盘方向键移动 &nbsp;|&nbsp; 滑动屏幕亦可</div>
-  </div>
+  <div class="kbd-hint">⌨️ 键盘方向键移动 &nbsp;|&nbsp; 滑动屏幕亦可</div>
 </div>
 
 <script>
@@ -441,10 +410,48 @@ let dpadTimer = null;
 let dpadIntervalId = null;
 let currentDirKey = null;
 
-/* 音频简单反馈 */
+/* 特效辅助函数 */
+function addRippleEffect(tileElement) {
+  if (!tileElement) return;
+  const ripple = document.createElement('div');
+  ripple.className = 'ripple-effect';
+  tileElement.style.position = 'relative';
+  tileElement.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 400);
+}
+function addFlashEffect(tileElement) {
+  if (!tileElement) return;
+  const flash = document.createElement('div');
+  flash.className = 'flash-effect';
+  tileElement.style.position = 'relative';
+  tileElement.appendChild(flash);
+  setTimeout(() => flash.remove(), 200);
+}
+// 简易彩带效果
+function triggerConfetti() {
+  const count = 200;
+  const defaults = { origin: { y: 0.6 }, startVelocity: 20, spread: 70, ticks: 100, colors: ['#5856d6', '#32ade6', '#ff9500', '#30d158', '#ff3b30'] };
+  function fire(particleRatio, opts) {
+    confetti(Object.assign({}, defaults, opts, { particleCount: Math.floor(count * particleRatio) }));
+  }
+  fire(0.25, { spread: 26, startVelocity: 15 });
+  fire(0.2, { spread: 45 });
+  fire(0.35, { spread: 70, startVelocity: 25, decay: 0.9 });
+  fire(0.1, { spread: 90, startVelocity: 35 });
+}
+// 动态加载confetti库
+if (typeof confetti === 'undefined') {
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1';
+  document.head.appendChild(script);
+  window.confetti = () => {};
+  script.onload = () => { window.confetti = canvasConfetti; };
+}
+
+/* 音频系统 */
 function getAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
 function playSound(type) {
-  if (!gameActive && type !== 'win') return;
+  if (!gameActive && type !== 'win' && type !== 'reset') return;
   try {
     const ctx = getAudio();
     if (ctx.state === 'suspended') ctx.resume();
@@ -464,6 +471,9 @@ function playSound(type) {
     } else if (type === 'win') {
       osc.type = 'sine'; osc.frequency.setValueAtTime(523, now); osc.frequency.setValueAtTime(659, now+0.12); osc.frequency.setValueAtTime(784, now+0.24); osc.frequency.setValueAtTime(1047, now+0.36);
       gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now+0.7);
+    } else if (type === 'reset') {
+      osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(80, now+0.1);
+      gain.gain.setValueAtTime(0.05, now); gain.gain.linearRampToValueAtTime(0, now+0.12);
     }
     osc.start(); osc.stop(now+0.6);
   } catch(e) {}
@@ -482,6 +492,7 @@ function initGame(levelIdx) {
   document.getElementById('hintBar').classList.remove('show');
   updateLevelDisplay();
   updateStatsAndRender();
+  playSound('reset');
 }
 
 function updateStatsAndRender() {
@@ -526,9 +537,18 @@ function renderGrid() {
         tile.classList.add('box');
         if (cell === 6) tile.classList.add('box-on-target');
       }
+      tile.dataset.row = r;
+      tile.dataset.col = c;
       gridDiv.appendChild(tile);
     }
   }
+}
+
+function getTileElement(row, col) {
+  const tiles = document.querySelectorAll('#grid .tile');
+  const cols = gameState[0].length;
+  const index = row * cols + col;
+  return tiles[index];
 }
 
 function triggerWin() {
@@ -536,6 +556,7 @@ function triggerWin() {
   winTriggered = true;
   gameActive = false;
   playSound('win');
+  triggerConfetti();
   document.getElementById('winSub').textContent = `✨ 共 ${moves} 步 ✨`;
   const winOverlay = document.getElementById('winOverlay');
   const nextBtn = document.getElementById('winNextBtn');
@@ -543,7 +564,7 @@ function triggerWin() {
   winOverlay.classList.add('show');
 }
 
-/* 移动逻辑 */
+/* 移动逻辑 + 特效 */
 function tryMove(dr, dc) {
   if (!gameActive) return false;
   let pr = -1, pc = -1;
@@ -558,11 +579,15 @@ function tryMove(dr, dc) {
   if (nr<0 || nr>=gameState.length || nc<0 || nc>=gameState[0].length) return false;
   const target = gameState[nr][nc];
   const leavingBase = baseMap[pr][pc] === 2 ? 2 : 0;
+  const playerTile = getTileElement(pr, pc);
+  if (playerTile) addFlashEffect(playerTile);
   if (target === 0 || target === 2) {
     gameState[pr][pc] = leavingBase;
     gameState[nr][nc] = (baseMap[nr][nc] === 2) ? 5 : 3;
     moves++;
     playSound('move');
+    const newTile = getTileElement(nr, nc);
+    if (newTile) addRippleEffect(newTile);
     updateStatsAndRender();
     return true;
   }
@@ -577,6 +602,10 @@ function tryMove(dr, dc) {
       gameState[pr][pc] = leavingBase;
       moves++;
       playSound(isTargetSpot ? 'success' : 'push');
+      const boxTile = getTileElement(nr, nc);
+      if (boxTile) addRippleEffect(boxTile);
+      const newPosTile = getTileElement(nnr, nnc);
+      if (newPosTile) addFlashEffect(newPosTile);
       updateStatsAndRender();
       return true;
     }
@@ -600,7 +629,7 @@ function updateLevelDisplay() {
   document.getElementById('totalLevelsSpan').textContent = LEVELS.length;
 }
 
-/* UI绑定与方向键（修复长按重复触发） */
+/* UI绑定与方向键 */
 const dirMap = { up: [-1,0], down: [1,0], left: [0,-1], right: [0,1] };
 function startRepeat(dir) {
   if (dpadTimer) clearTimeout(dpadTimer);
