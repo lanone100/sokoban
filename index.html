@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cubic Mind - 極簡推箱子</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --player-color: #2c3e50;
+            --box-color: #d4af37;
+            --target-color: rgba(255, 255, 255, 0.8);
+            --wall-color: rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: var(--bg-gradient);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+        }
+
+        /* 毛玻璃容器 */
+        .game-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 { color: #555; font-weight: 300; margin-bottom: 20px; letter-spacing: 2px; }
+        .stats { margin-bottom: 20px; color: #777; font-size: 0.9rem; }
+
+        /* 遊戲網格 */
+        #grid {
+            display: grid;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px;
+            border-radius: 12px;
+        }
+
+        .tile {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        /* 不同元素的樣式 */
+        .wall { background: var(--wall-color); }
+        .target { border: 2px dashed var(--target-color); box-sizing: border-box; }
+        .player { background: var(--player-color); border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .box { background: var(--box-color); border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .box-on-target { background: #2ecc71; border-radius: 6px; } /* 箱子到達目標變綠色 */
+
+        .controls-hint { margin-top: 20px; color: #999; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h1>CUBIC MIND</h1>
+    <div class="stats">LEVEL 1 | MOVES: <span id="move-count">0</span></div>
+    
+    <div id="grid"></div>
+
+    <div class="controls-hint">使用方向鍵 (↑ ↓ ← →) 進行移動</div>
+</div>
+
+<script>
+    // 地圖定義：0=地板, 1=牆壁, 2=目標, 3=玩家, 4=箱子
+    const levelData = [
+        [1, 1, 1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 0, 0, 1],
+        [1, 0, 2, 4, 3, 0, 1],
+        [1, 0, 0, 0, 0, 0, 1],
+        [1, 1, 1, 1, 1, 1, 1]
+    ];
+
+    let gameState = JSON.parse(JSON.stringify(levelData));
+    let moves = 0;
+
+    function render() {
+        const gridElement = document.getElementById('grid');
+        gridElement.innerHTML = '';
+        gridElement.style.gridTemplateColumns = `repeat(${gameState[0].length}, 50px)`;
+
+        gameState.forEach((row, r) => {
+            row.forEach((cell, c) => {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                if (cell === 1) tile.classList.add('wall');
+                if (cell === 2) tile.classList.add('target');
+                if (cell === 3) tile.classList.add('player');
+                if (cell === 4) tile.classList.add('box');
+                // 簡化的目標判定（實際邏輯需更嚴謹，此處為示範）
+                if (cell === 4 && levelData[r][c] === 2) tile.classList.add('box-on-target');
+                
+                gridElement.appendChild(tile);
+            });
+        });
+        document.getElementById('move-count').innerText = moves;
+    }
+
+    function movePlayer(dr, dc) {
+        let pr, pc;
+        // 找玩家位置
+        gameState.forEach((row, r) => {
+            row.forEach((cell, c) => { if (cell === 3) { pr = r; pc = c; } });
+        });
+
+        const nr = pr + dr;
+        const nc = pc + dc;
+        const targetCell = gameState[nr][nc];
+
+        if (targetCell === 0 || targetCell === 2) { // 走進空地或目標
+            gameState[pr][pc] = levelData[pr][pc] === 2 ? 2 : 0;
+            gameState[nr][nc] = 3;
+            moves++;
+        } else if (targetCell === 4) { // 遇到箱子
+            const nnr = nr + dr;
+            const nnc = nc + dc;
+            if (gameState[nnr][nnc] === 0 || gameState[nnr][nnc] === 2) {
+                gameState[nnr][nnc] = 4;
+                gameState[nr][nc] = 3;
+                gameState[pr][pc] = levelData[pr][pc] === 2 ? 2 : 0;
+                moves++;
+            }
+        }
+        render();
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowUp') movePlayer(-1, 0);
+        if (e.key === 'ArrowDown') movePlayer(1, 0);
+        if (e.key === 'ArrowLeft') movePlayer(0, -1);
+        if (e.key === 'ArrowRight') movePlayer(0, 1);
+    });
+
+    render();
+</script>
+
+</body>
+</html>
