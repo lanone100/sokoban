@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Cubic Mind — 推箱子</title>
+<title>Cubic Mind — 推箱子 | 横版PC·灵动多关卡</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@200;300;400&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-/* ───────────── CSS Variables ───────────── */
+/* ───────────── CSS Variables (优雅双主题) ───────────── */
 :root {
-  /* Light Mode */
   --bg-primary: #f2f2f7;
   --bg-secondary: #ffffff;
   --bg-card: rgba(255,255,255,0.72);
@@ -19,22 +18,15 @@
   --shadow-lg: 0 20px 60px rgba(0,0,0,0.10), 0 4px 16px rgba(0,0,0,0.06);
   --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
   --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
-
   --text-primary: #1c1c1e;
   --text-secondary: #636366;
   --text-tertiary: #aeaeb2;
-
   --accent-blue: #007aff;
   --accent-indigo: #5856d6;
   --accent-purple: #af52de;
   --accent-teal: #32ade6;
   --accent-green: #34c759;
-  --accent-orange: #ff9500;
-  --accent-red: #ff3b30;
-
-  /* Game tile colors */
   --tile-wall: rgba(142,142,147,0.12);
-  --tile-floor: transparent;
   --tile-target-border: rgba(50,173,230,0.4);
   --tile-target-bg: rgba(50,173,230,0.06);
   --player-bg: linear-gradient(145deg, #1c1c1e 0%, #3a3a3c 100%);
@@ -43,10 +35,11 @@
   --box-shadow: 0 6px 18px rgba(212,135,10,0.4);
   --box-done-bg: linear-gradient(145deg, #30d158 0%, #1a9e42 100%);
   --box-done-shadow: 0 6px 18px rgba(48,209,88,0.45);
-
   --grid-gap: 5px;
   --tile-size: 52px;
   --tile-radius: 12px;
+  --game-max-width: 460px;
+  --right-panel-width: 280px;
 }
 
 [data-theme="dark"] {
@@ -59,11 +52,9 @@
   --shadow-lg: 0 20px 60px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.4);
   --shadow-md: 0 8px 24px rgba(0,0,0,0.4);
   --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
-
   --text-primary: #ffffff;
   --text-secondary: #aeaeb2;
   --text-tertiary: #636366;
-
   --tile-wall: rgba(99,99,102,0.18);
   --tile-target-border: rgba(50,173,230,0.45);
   --tile-target-bg: rgba(50,173,230,0.08);
@@ -73,15 +64,9 @@
   --box-shadow: 0 6px 18px rgba(255,214,10,0.35);
 }
 
-/* ───────────── Reset & Base ───────────── */
+/* 重置与基础 */
 *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-html, body {
-  margin: 0; padding: 0;
-  min-height: 100dvh;
-  overflow-x: hidden;
-}
-
+html, body { margin: 0; padding: 0; min-height: 100dvh; overflow-x: hidden; }
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
@@ -90,468 +75,376 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 20px;
   transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* ───────────── Animated Backdrop ───────────── */
-.backdrop {
-  position: fixed; inset: 0; z-index: 0;
-  overflow: hidden; pointer-events: none;
-}
-.orb {
-  position: absolute; border-radius: 50%;
-  filter: blur(80px); opacity: 0.5;
-  animation: float 12s ease-in-out infinite alternate;
-}
-.orb-1 { width: 420px; height: 420px; top: -100px; left: -100px;
-  background: radial-gradient(circle, rgba(88,86,214,0.35), transparent 70%); }
-.orb-2 { width: 300px; height: 300px; bottom: -80px; right: -60px;
-  background: radial-gradient(circle, rgba(50,173,230,0.3), transparent 70%);
-  animation-delay: -4s; }
-.orb-3 { width: 250px; height: 250px; top: 40%; left: 50%;
-  background: radial-gradient(circle, rgba(175,82,222,0.2), transparent 70%);
-  animation-delay: -8s; }
-
+/* 氛围光晕 */
+.backdrop { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.5; animation: float 12s ease-in-out infinite alternate; }
+.orb-1 { width: 420px; height: 420px; top: -100px; left: -100px; background: radial-gradient(circle, rgba(88,86,214,0.35), transparent 70%); }
+.orb-2 { width: 300px; height: 300px; bottom: -80px; right: -60px; background: radial-gradient(circle, rgba(50,173,230,0.3), transparent 70%); animation-delay: -4s; }
+.orb-3 { width: 250px; height: 250px; top: 40%; left: 50%; background: radial-gradient(circle, rgba(175,82,222,0.2), transparent 70%); animation-delay: -8s; }
 [data-theme="dark"] .orb { opacity: 0.6; }
+@keyframes float { from { transform: translate(0, 0) scale(1); } to { transform: translate(30px, 20px) scale(1.05); } }
 
-@keyframes float {
-  from { transform: translate(0, 0) scale(1); }
-  to   { transform: translate(30px, 20px) scale(1.05); }
-}
-
-/* ───────────── Main Card ───────────── */
+/* 主容器：默认为竖向卡片 (移动端) */
 .game-container {
-  position: relative; z-index: 1;
-  width: 100%; max-width: 420px;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: var(--game-max-width);
   background: var(--bg-card);
   backdrop-filter: blur(30px) saturate(1.8);
   -webkit-backdrop-filter: blur(30px) saturate(1.8);
   border: 1px solid var(--border-color);
-  border-radius: 32px;
-  padding: 28px 24px 24px;
+  border-radius: 36px;
+  padding: 24px 22px 24px;
   box-shadow: var(--shadow-lg);
+  transition: all 0.3s ease;
 }
 
-/* ───────────── Header ───────────── */
+/* 默认各区块顺序为块级 */
+.game-header { margin-bottom: 0; }
+.game-stats-row { margin: 16px 0 14px; }
+.game-grid { margin: 0 auto; }
+.game-hint { margin-top: 12px; }
+.game-legend { margin-top: 16px; }
+.game-controls { margin-top: 20px; }
+.game-kbd { margin-top: 12px; text-align: center; }
+
+/* 头部区域 */
 .header {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 4px;
 }
-
 .title-group { display: flex; flex-direction: column; }
-
-.title {
-  font-size: 22px; font-weight: 300;
-  letter-spacing: 0.12em;
-  color: var(--text-primary);
-  line-height: 1;
-}
+.title { font-size: 22px; font-weight: 300; letter-spacing: 0.12em; color: var(--text-primary); line-height: 1; }
 .title span { color: var(--accent-indigo); font-weight: 400; }
+.subtitle { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-tertiary); margin-top: 3px; font-weight: 400; }
 
-.subtitle {
-  font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
-  color: var(--text-tertiary); margin-top: 3px; font-weight: 400;
-}
-
-/* Theme Toggle */
+/* 主题切换钮 */
 .theme-btn {
   width: 44px; height: 26px; border-radius: 13px; border: none; cursor: pointer;
-  position: relative; padding: 0;
   background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple));
-  box-shadow: 0 2px 8px rgba(88,86,214,0.4);
-  transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
-  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(88,86,214,0.4); transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative;
 }
 .theme-btn::before {
-  content: '';
-  position: absolute; top: 3px; left: 3px;
-  width: 20px; height: 20px; border-radius: 50%;
-  background: white;
-  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px;
+  border-radius: 50%; background: white; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
   box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 [data-theme="dark"] .theme-btn::before { transform: translateX(18px); }
-.theme-icon { position: absolute; inset: 0; display: flex; align-items: center;
-  justify-content: center; font-size: 11px; pointer-events: none; }
+.theme-icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; pointer-events: none; }
 
-/* ───────────── Stats Bar ───────────── */
-.stats-bar {
-  display: flex; gap: 8px; margin: 16px 0 18px;
+/* 统计栏 + 关卡导航融合 */
+.stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
+.stats-bar { display: flex; gap: 8px; flex: 2; }
 .stat-pill {
-  flex: 1; background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 14px; padding: 10px 12px;
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  transition: background 0.3s;
+  flex: 1; background: var(--bg-primary); border: 1px solid var(--border-color);
+  border-radius: 14px; padding: 8px 8px; text-align: center;
+  transition: background 0.3s; min-width: 70px;
 }
-.stat-label {
-  font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--text-tertiary); font-weight: 500;
-}
-.stat-value {
-  font-size: 20px; font-weight: 300; color: var(--text-primary);
-  line-height: 1; font-variant-numeric: tabular-nums;
-}
+.stat-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-tertiary); font-weight: 500; }
+.stat-value { font-size: 20px; font-weight: 300; color: var(--text-primary); line-height: 1; font-variant-numeric: tabular-nums; }
 .stat-value.accent { color: var(--accent-blue); }
 .stat-value.green  { color: var(--accent-green); }
 
-/* ───────────── Grid ───────────── */
+.level-nav {
+  display: flex; align-items: center; gap: 6px; background: var(--bg-primary);
+  border: 1px solid var(--border-color); border-radius: 40px; padding: 4px 10px;
+  backdrop-filter: blur(5px);
+}
+.level-nav-btn {
+  background: transparent; border: none; font-size: 16px; font-weight: 500;
+  color: var(--accent-indigo); cursor: pointer; padding: 6px 8px; border-radius: 30px;
+  transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px;
+  font-family: system-ui;
+}
+.level-nav-btn:active { transform: scale(0.92); background: rgba(88,86,214,0.15); }
+.level-nav-text {
+  font-size: 12px; font-weight: 500; color: var(--text-secondary);
+  background: var(--bg-glass); padding: 4px 8px; border-radius: 20px;
+  letter-spacing: 0.02em;
+}
+
+/* 网格 */
 #grid {
   display: grid;
   gap: var(--grid-gap);
-  padding: 12px;
+  padding: 10px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 20px;
+  border-radius: 24px;
   width: fit-content;
   margin: 0 auto;
   transition: background 0.3s;
 }
-
 .tile {
-  width: var(--tile-size); height: var(--tile-size);
-  border-radius: var(--tile-radius);
-  display: flex; justify-content: center; align-items: center;
-  position: relative;
+  width: var(--tile-size); height: var(--tile-size); border-radius: var(--tile-radius);
+  display: flex; justify-content: center; align-items: center; position: relative;
   transition: transform 0.18s cubic-bezier(0.175,0.885,0.32,1.275);
 }
-
-.wall {
-  background: var(--tile-wall);
-  border-radius: 10px;
-}
-
+.wall { background: var(--tile-wall); border-radius: 10px; }
 .target::after {
-  content: '';
-  position: absolute; inset: 8px;
-  border-radius: 8px;
-  border: 2px dashed var(--tile-target-border);
-  background: var(--tile-target-bg);
+  content: ''; position: absolute; inset: 8px; border-radius: 8px;
+  border: 2px dashed var(--tile-target-border); background: var(--tile-target-bg);
 }
-
 .player {
-  background: var(--player-bg);
-  border-radius: 16px;
-  box-shadow: var(--player-shadow);
-  z-index: 3;
-  animation: playerPop 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  background: var(--player-bg); border-radius: 16px; box-shadow: var(--player-shadow);
+  z-index: 3; animation: playerPop 0.2s cubic-bezier(0.34,1.56,0.64,1);
 }
-.player::before {
-  content: ''; position: absolute; inset: 0;
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
-}
-
+.player::before { content: ''; position: absolute; inset: 0; border-radius: 16px; background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%); }
 .box {
-  background: var(--box-bg);
-  border-radius: 12px;
-  box-shadow: var(--box-shadow);
-  z-index: 2;
-  transition: transform 0.18s cubic-bezier(0.175,0.885,0.32,1.275),
-              background 0.3s ease, box-shadow 0.3s ease;
+  background: var(--box-bg); border-radius: 12px; box-shadow: var(--box-shadow);
+  z-index: 2; transition: transform 0.18s, background 0.3s, box-shadow 0.3s;
 }
-.box::before {
-  content: ''; position: absolute; inset: 0;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 55%);
-}
-
+.box::before { content: ''; position: absolute; inset: 0; border-radius: 12px; background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 55%); }
 .box-on-target {
-  background: var(--box-done-bg) !important;
-  box-shadow: var(--box-done-shadow) !important;
+  background: var(--box-done-bg) !important; box-shadow: var(--box-done-shadow) !important;
   transform: scale(0.92) !important;
 }
 .box-on-target::after {
-  content: '✓';
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  color: rgba(255,255,255,0.9);
-  font-size: 18px; font-weight: 600;
+  content: '✓'; position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; color: rgba(255,255,255,0.9); font-size: 18px; font-weight: 600;
   z-index: 5;
 }
+@keyframes playerPop { from { transform: scale(0.9); } to { transform: scale(1); } }
 
-@keyframes playerPop {
-  from { transform: scale(0.9); }
-  to   { transform: scale(1); }
-}
-
-/* ───────────── Controls ───────────── */
-.controls-section { margin-top: 20px; }
-
+/* 方向按键区 */
+.controls-section { margin-top: 0; }
 .dpad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  gap: 8px;
-  width: 160px;
-  margin: 0 auto;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  width: 160px; margin: 0 auto;
 }
-
 .dpad-btn {
-  aspect-ratio: 1;
-  border: none; border-radius: 14px; cursor: pointer;
-  background: var(--bg-glass);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px;
-  color: var(--text-secondary);
-  transition: all 0.15s ease;
-  -webkit-user-select: none; user-select: none;
+  aspect-ratio: 1; border: none; border-radius: 18px; cursor: pointer;
+  background: var(--bg-glass); backdrop-filter: blur(10px); border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--text-secondary); transition: all 0.1s ease;
   touch-action: manipulation;
 }
-
-.dpad-btn:active, .dpad-btn.pressed {
-  transform: scale(0.88);
-  background: var(--accent-indigo);
-  color: white;
-  border-color: transparent;
-  box-shadow: 0 2px 10px rgba(88,86,214,0.4);
-}
-
+.dpad-btn:active, .dpad-btn.pressed { transform: scale(0.88); background: var(--accent-indigo); color: white; border-color: transparent; box-shadow: 0 2px 10px rgba(88,86,214,0.5); }
 .dpad-btn.center-empty { visibility: hidden; }
 
-/* ───────────── Action Buttons ───────────── */
+/* 动作按钮行 */
 .action-bar {
-  display: flex; gap: 10px; margin-top: 14px;
+  display: flex; gap: 12px; margin-top: 18px;
 }
 .action-btn {
-  flex: 1; height: 44px; border: none; border-radius: 14px; cursor: pointer;
-  font-family: 'Noto Sans TC', system-ui, sans-serif;
-  font-size: 13px; font-weight: 500;
-  letter-spacing: 0.05em;
-  transition: all 0.18s ease;
-  touch-action: manipulation;
-  -webkit-user-select: none; user-select: none;
+  flex: 1; height: 48px; border: none; border-radius: 28px; cursor: pointer;
+  font-family: 'Noto Sans TC', system-ui; font-size: 14px; font-weight: 500;
+  letter-spacing: 0.03em; transition: all 0.2s ease; touch-action: manipulation;
 }
-.btn-restart {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-}
-.btn-restart:active { transform: scale(0.95); opacity: 0.7; }
-.btn-hint {
-  background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple));
-  color: white;
-  box-shadow: 0 4px 14px rgba(88,86,214,0.35);
-}
-.btn-hint:active { transform: scale(0.95); box-shadow: 0 2px 8px rgba(88,86,214,0.3); }
+.btn-restart { background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-secondary); }
+.btn-restart:active { transform: scale(0.96); opacity: 0.7; }
+.btn-hint { background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple)); color: white; box-shadow: 0 4px 12px rgba(88,86,214,0.4); }
+.btn-hint:active { transform: scale(0.96); }
 
-/* ───────────── Win Overlay ───────────── */
+/* 胜利蒙层 */
 .win-overlay {
-  position: absolute; inset: 0; z-index: 100;
-  border-radius: 32px;
-  background: var(--bg-card);
-  backdrop-filter: blur(30px) saturate(2);
-  -webkit-backdrop-filter: blur(30px) saturate(2);
-  display: none; flex-direction: column;
-  align-items: center; justify-content: center; gap: 16px;
-  animation: fadeIn 0.4s ease;
+  position: absolute; inset: 0; z-index: 100; border-radius: 36px;
+  background: var(--bg-card); backdrop-filter: blur(36px) saturate(2);
+  -webkit-backdrop-filter: blur(36px) saturate(2);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; animation: fadeIn 0.4s ease;
 }
 .win-overlay.show { display: flex; }
-
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-
-.win-emoji { font-size: 64px; animation: bounce 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+.win-emoji { font-size: 72px; animation: bounce 0.5s cubic-bezier(0.34,1.56,0.64,1); }
 @keyframes bounce { from { transform: scale(0); } to { transform: scale(1); } }
 .win-title { font-size: 26px; font-weight: 300; letter-spacing: 0.08em; color: var(--text-primary); }
-.win-sub { font-size: 13px; color: var(--text-secondary); font-weight: 400; }
+.win-sub { font-size: 13px; color: var(--text-secondary); }
+.win-buttons { display: flex; gap: 16px; margin-top: 10px; }
 .win-btn {
-  margin-top: 8px; padding: 14px 40px;
-  border-radius: 16px; border: none; cursor: pointer;
+  padding: 10px 24px; border-radius: 40px; border: none; cursor: pointer;
   background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple));
-  color: white; font-size: 15px; font-weight: 500;
-  font-family: 'Noto Sans TC', system-ui;
-  box-shadow: 0 6px 20px rgba(88,86,214,0.4);
-  letter-spacing: 0.06em;
-  transition: all 0.18s;
+  color: white; font-size: 14px; font-weight: 500; font-family: system-ui;
+  box-shadow: 0 4px 14px rgba(88,86,214,0.4); transition: all 0.18s;
 }
-.win-btn:active { transform: scale(0.96); }
+.win-btn:active { transform: scale(0.95); }
+.win-btn.secondary { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); box-shadow: none; }
 
-/* ───────────── Hint Bar ───────────── */
-.hint-bar {
-  display: none;
-  margin-top: 10px; padding: 10px 14px;
-  background: rgba(88,86,214,0.08);
-  border: 1px solid rgba(88,86,214,0.2);
-  border-radius: 12px;
-  font-size: 12px; color: var(--accent-indigo);
-  line-height: 1.5; text-align: center;
-}
+/* 提示栏 */
+.hint-bar { display: none; padding: 10px 14px; background: rgba(88,86,214,0.08); border: 1px solid rgba(88,86,214,0.2); border-radius: 20px; font-size: 12px; color: var(--accent-indigo); line-height: 1.4; text-align: center; }
 .hint-bar.show { display: block; }
+.kbd-hint { font-size: 10px; color: var(--text-tertiary); }
+kbd { display: inline-block; padding: 1px 5px; margin: 0 2px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 5px; font-size: 10px; color: var(--text-secondary); }
 
-/* ───────────── Keyboard Hint ───────────── */
-.kbd-hint {
-  margin-top: 12px; text-align: center;
-  font-size: 11px; color: var(--text-tertiary);
-  letter-spacing: 0.04em;
-}
-kbd {
-  display: inline-block; padding: 1px 5px; margin: 0 1px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px; font-size: 10px;
-  color: var(--text-secondary);
-  box-shadow: 0 1px 0 var(--border-color);
-}
-
-/* ───────────── Legend ───────────── */
+/* 图例 */
 .legend {
-  display: flex; justify-content: center; gap: 16px;
-  margin-top: 14px; flex-wrap: wrap;
+  display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;
 }
-.legend-item {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 10px; color: var(--text-tertiary); letter-spacing: 0.04em;
-}
-.legend-dot {
-  width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0;
-}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-tertiary); }
+.legend-dot { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
 .ld-player { background: var(--player-bg); }
-.ld-box    { background: linear-gradient(135deg, #f0b429, #d4870a); border-radius: 3px; }
-.ld-done   { background: linear-gradient(135deg, #30d158, #1a9e42); border-radius: 3px; }
+.ld-box    { background: linear-gradient(135deg, #f0b429, #d4870a); border-radius: 4px; }
+.ld-done   { background: linear-gradient(135deg, #30d158, #1a9e42); border-radius: 4px; }
 .ld-target { border: 2px dashed var(--tile-target-border); background: var(--tile-target-bg); }
 
-/* ───────────── Responsive ───────────── */
-@media (max-width: 360px) {
-  :root { --tile-size: 44px; --tile-radius: 10px; }
-  .game-container { padding: 22px 16px 20px; border-radius: 26px; }
-  .title { font-size: 19px; }
-}
-@media (min-width: 560px) {
-  :root { --tile-size: 56px; --tile-radius: 14px; }
-  .game-container { padding: 36px 32px 32px; }
+/* ========= 横版布局 (PC宽屏) ========= */
+@media (min-width: 860px) {
+  :root {
+    --tile-size: 58px;
+    --tile-radius: 14px;
+    --game-max-width: 1000px;
+  }
+  .game-container {
+    max-width: var(--game-max-width);
+    display: grid;
+    grid-template-columns: 1fr var(--right-panel-width);
+    gap: 28px;
+    padding: 28px 32px;
+    align-items: start;
+  }
+  /* 左侧区域：网格 */
+  .game-grid {
+    grid-column: 1 / 2;
+    margin: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  /* 右侧面板组合所有其他内容 */
+  .game-header { grid-column: 2 / 3; grid-row: 1; margin-bottom: 8px; }
+  .game-stats-row { grid-column: 2 / 3; grid-row: 2; margin: 0 0 16px 0; }
+  .game-legend { grid-column: 2 / 3; grid-row: 3; margin: 12px 0 8px; }
+  .game-controls { grid-column: 2 / 3; grid-row: 4; margin-top: 12px; }
+  .game-hint { grid-column: 2 / 3; grid-row: 5; margin-top: 12px; }
+  .game-kbd { grid-column: 2 / 3; grid-row: 6; margin-top: 16px; text-align: center; }
+
+  /* 右侧内部微调 */
+  .stats-row { flex-direction: column; align-items: stretch; gap: 10px; }
+  .stats-bar { width: 100%; }
+  .level-nav { justify-content: center; margin-top: 4px; }
+  .dpad { width: 180px; }
+  .action-bar { gap: 10px; }
+  .legend { justify-content: flex-start; flex-wrap: wrap; }
+  .win-overlay { border-radius: 36px; left: 0; right: 0; }
 }
 
-/* ───────────── Selection Remove ───────────── */
-* { -webkit-user-select: none; user-select: none; }
+/* 移动端微调 */
+@media (max-width: 480px) {
+  :root { --tile-size: 44px; --tile-radius: 10px; }
+  .game-container { padding: 18px 16px 20px; }
+  .title { font-size: 19px; }
+}
 </style>
 </head>
 <body>
 
-<div class="backdrop">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-</div>
+<div class="backdrop"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
 
 <div class="game-container" id="gameContainer">
-  <!-- Win Overlay -->
+  <!-- 胜利蒙层 -->
   <div class="win-overlay" id="winOverlay">
-    <div class="win-emoji">🎉</div>
+    <div class="win-emoji">🏆</div>
     <div class="win-title">STAGE CLEAR</div>
-    <div class="win-sub" id="winSub">共走了 0 步</div>
-    <button class="win-btn" onclick="restartGame()">再玩一次</button>
-  </div>
-
-  <!-- Header -->
-  <div class="header">
-    <div class="title-group">
-      <div class="title">CUBIC <span>MIND</span></div>
-      <div class="subtitle">推箱子 · SOKOBAN</div>
-    </div>
-    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" aria-label="切換模式">
-      <span class="theme-icon" id="themeIcon">🌙</span>
-    </button>
-  </div>
-
-  <!-- Stats -->
-  <div class="stats-bar">
-    <div class="stat-pill">
-      <div class="stat-label">關卡</div>
-      <div class="stat-value accent" id="levelNum">1</div>
-    </div>
-    <div class="stat-pill">
-      <div class="stat-label">步數</div>
-      <div class="stat-value" id="moveCount">0</div>
-    </div>
-    <div class="stat-pill">
-      <div class="stat-label">完成</div>
-      <div class="stat-value green" id="doneCount">0 / <span id="totalBoxes">0</span></div>
+    <div class="win-sub" id="winSub">步数: 0</div>
+    <div class="win-buttons">
+      <button class="win-btn secondary" id="winRestartBtn">🔄 重玩</button>
+      <button class="win-btn" id="winNextBtn">✨ 下一关</button>
     </div>
   </div>
 
-  <!-- Grid -->
-  <div id="grid"></div>
-
-  <!-- Hint bar -->
-  <div class="hint-bar" id="hintBar">提示：嘗試先把下方箱子推到右邊的目標點</div>
-
-  <!-- Legend -->
-  <div class="legend">
-    <div class="legend-item">
-      <div class="legend-dot ld-player"></div><span>玩家</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-dot ld-box"></div><span>箱子</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-dot ld-done"></div><span>已到位</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-dot ld-target"></div><span>目標</span>
+  <!-- 头部区域 -->
+  <div class="game-header">
+    <div class="header">
+      <div class="title-group"><div class="title">CUBIC <span>MIND</span></div><div class="subtitle">推箱子 · 灵境</div></div>
+      <button class="theme-btn" id="themeBtn" aria-label="切換模式"><span class="theme-icon" id="themeIcon">🌙</span></button>
     </div>
   </div>
 
-  <!-- D-Pad Controls -->
-  <div class="controls-section">
-    <div class="dpad">
-      <div></div>
-      <button class="dpad-btn" id="btnUp"    data-dir="up"    ontouchstart="handleDpadStart(event)" ontouchend="handleDpadEnd(event)" onmousedown="handleDpadStart(event)" onmouseup="handleDpadEnd(event)">▲</button>
-      <div></div>
-      <button class="dpad-btn" id="btnLeft"  data-dir="left"  ontouchstart="handleDpadStart(event)" ontouchend="handleDpadEnd(event)" onmousedown="handleDpadStart(event)" onmouseup="handleDpadEnd(event)">◀</button>
-      <div class="center-empty"></div>
-      <button class="dpad-btn" id="btnRight" data-dir="right" ontouchstart="handleDpadStart(event)" ontouchend="handleDpadEnd(event)" onmousedown="handleDpadStart(event)" onmouseup="handleDpadEnd(event)">▶</button>
-      <div></div>
-      <button class="dpad-btn" id="btnDown"  data-dir="down"  ontouchstart="handleDpadStart(event)" ontouchend="handleDpadEnd(event)" onmousedown="handleDpadStart(event)" onmouseup="handleDpadEnd(event)">▼</button>
-      <div></div>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="action-bar">
-      <button class="action-btn btn-restart" onclick="restartGame()">↩ 重新開始</button>
-      <button class="action-btn btn-hint" onclick="toggleHint()">💡 提示</button>
+  <!-- 统计与关卡导航 -->
+  <div class="game-stats-row">
+    <div class="stats-row">
+      <div class="stats-bar">
+        <div class="stat-pill"><div class="stat-label">步數</div><div class="stat-value" id="moveCount">0</div></div>
+        <div class="stat-pill"><div class="stat-label">完成</div><div class="stat-value green" id="doneCount">0 / <span id="totalBoxes">0</span></div></div>
+      </div>
+      <div class="level-nav">
+        <button class="level-nav-btn" id="prevLevelBtn">◀</button>
+        <span class="level-nav-text" id="levelDisplay">Lv.1/<span id="totalLevelsSpan">4</span></span>
+        <button class="level-nav-btn" id="nextLevelBtn">▶</button>
+      </div>
     </div>
   </div>
 
-  <!-- Keyboard Hint -->
-  <div class="kbd-hint">桌面：使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 方向鍵移動</div>
+  <!-- 游戏网格区域 -->
+  <div class="game-grid">
+    <div id="grid"></div>
+  </div>
+
+  <!-- 图例 -->
+  <div class="game-legend">
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot ld-player"></div><span>玩家</span></div>
+      <div class="legend-item"><div class="legend-dot ld-box"></div><span>箱子</span></div>
+      <div class="legend-item"><div class="legend-dot ld-done"></div><span>已归位</span></div>
+      <div class="legend-item"><div class="legend-dot ld-target"></div><span>目標點</span></div>
+    </div>
+  </div>
+
+  <!-- 方向 & 动作控制 -->
+  <div class="game-controls">
+    <div class="controls-section">
+      <div class="dpad">
+        <div></div><button class="dpad-btn" id="btnUp" data-dir="up">▲</button><div></div>
+        <button class="dpad-btn" id="btnLeft" data-dir="left">◀</button><div class="center-empty"></div>
+        <button class="dpad-btn" id="btnRight" data-dir="right">▶</button>
+        <div></div><button class="dpad-btn" id="btnDown" data-dir="down">▼</button><div></div>
+      </div>
+      <div class="action-bar">
+        <button class="action-btn btn-restart" id="restartBtn">↩ 重来</button>
+        <button class="action-btn btn-hint" id="hintBtn">💡 提示</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 提示条 -->
+  <div class="game-hint">
+    <div class="hint-bar" id="hintBar">✨ 轻点提示获得指引</div>
+  </div>
+
+  <!-- 键盘提示 -->
+  <div class="game-kbd">
+    <div class="kbd-hint">⌨️ 键盘方向键移动 &nbsp;|&nbsp; 滑动屏幕亦可</div>
+  </div>
 </div>
 
 <script>
-/* ─── Level Data ─── */
+/* ───────────── 多关卡数据 (4关) ───────────── */
 const LEVELS = [
-  {
-    map: [
-      [1,1,1,1,1,1,1],
-      [1,0,0,0,2,0,1],
-      [1,0,4,0,0,0,1],
-      [1,0,3,2,4,0,1],
-      [1,1,1,1,1,1,1]
-    ],
-    hint: '先把下方箱子往右推到目標點，再處理上方的箱子。'
-  }
+  { map: [[1,1,1,1,1,1,1],[1,0,0,0,2,0,1],[1,0,4,0,0,0,1],[1,0,3,2,4,0,1],[1,1,1,1,1,1,1]], hint: '先把右下箱子推至右侧目标，再处理中央区域。' },
+  { map: [[1,1,1,1,1,1,1,1],[1,0,0,0,2,0,0,1],[1,0,4,0,0,0,0,1],[1,0,0,3,0,0,0,1],[1,0,0,0,4,2,0,1],[1,1,1,1,1,1,1,1]], hint: '绕开墙壁，将左边箱子先推到右下目标，再处理左上箱子。' },
+  { map: [[1,1,1,1,1,1,1,1],[1,2,0,0,0,0,0,1],[1,0,4,0,3,0,4,1],[1,0,0,0,0,0,2,1],[1,1,1,1,1,1,1,1]], hint: '两个箱子需各自归位，上方箱子向下推，右侧箱子向左推。' },
+  { map: [[1,1,1,1,1,1],[1,0,0,0,0,1],[1,4,3,2,0,1],[1,0,0,4,2,1],[1,0,0,0,0,1],[1,1,1,1,1,1]], hint: '注意两个目标点相邻，利用左下角空间。' }
 ];
-
-// 0=floor, 1=wall, 2=target, 3=player, 4=box
-// 5=player on target, 6=box on target
 
 let currentLevel = 0;
 let baseMap = [];
 let gameState = [];
 let moves = 0;
-let audioCtx;
+let gameActive = true;
+let winTriggered = false;
+let audioCtx = null;
+let dpadTimer = null;
+let dpadIntervalId = null;
+let currentDirKey = null;
 
-/* ─── Audio ─── */
-function getAudio() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  return audioCtx;
-}
+/* 音频简单反馈 */
+function getAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
 function playSound(type) {
+  if (!gameActive && type !== 'win') return;
   try {
     const ctx = getAudio();
     if (ctx.state === 'suspended') ctx.resume();
@@ -560,223 +453,262 @@ function playSound(type) {
     osc.connect(gain); gain.connect(ctx.destination);
     const now = ctx.currentTime;
     if (type === 'move') {
-      osc.type = 'sine'; osc.frequency.setValueAtTime(180, now);
-      osc.frequency.exponentialRampToValueAtTime(60, now + 0.08);
-      gain.gain.setValueAtTime(0.08, now);
-      gain.gain.linearRampToValueAtTime(0, now + 0.08);
+      osc.type = 'sine'; osc.frequency.setValueAtTime(180, now); osc.frequency.exponentialRampToValueAtTime(60, now+0.08);
+      gain.gain.setValueAtTime(0.07, now); gain.gain.linearRampToValueAtTime(0, now+0.08);
     } else if (type === 'push') {
-      osc.type = 'triangle'; osc.frequency.setValueAtTime(280, now);
-      osc.frequency.linearRampToValueAtTime(180, now + 0.12);
-      gain.gain.setValueAtTime(0.06, now);
-      gain.gain.linearRampToValueAtTime(0, now + 0.15);
+      osc.type = 'triangle'; osc.frequency.setValueAtTime(280, now); osc.frequency.linearRampToValueAtTime(160, now+0.12);
+      gain.gain.setValueAtTime(0.06, now); gain.gain.linearRampToValueAtTime(0, now+0.15);
     } else if (type === 'success') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(523.25, now);
-      osc.frequency.setValueAtTime(659.25, now + 0.1);
-      osc.frequency.setValueAtTime(783.99, now + 0.2);
-      gain.gain.setValueAtTime(0.1, now);
-      gain.gain.linearRampToValueAtTime(0, now + 0.4);
+      osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now+0.1); osc.frequency.setValueAtTime(783.99, now+0.2);
+      gain.gain.setValueAtTime(0.09, now); gain.gain.linearRampToValueAtTime(0, now+0.4);
     } else if (type === 'win') {
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(523, now);
-      osc.frequency.setValueAtTime(659, now + 0.12);
-      osc.frequency.setValueAtTime(784, now + 0.24);
-      osc.frequency.setValueAtTime(1047, now + 0.36);
-      gain.gain.setValueAtTime(0.12, now);
-      gain.gain.linearRampToValueAtTime(0, now + 0.6);
+      osc.type = 'sine'; osc.frequency.setValueAtTime(523, now); osc.frequency.setValueAtTime(659, now+0.12); osc.frequency.setValueAtTime(784, now+0.24); osc.frequency.setValueAtTime(1047, now+0.36);
+      gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now+0.7);
     }
-    osc.start(); osc.stop(now + 0.7);
+    osc.start(); osc.stop(now+0.6);
   } catch(e) {}
 }
 
-/* ─── Game Init ─── */
-function initGame(level = 0) {
-  currentLevel = level;
-  baseMap = LEVELS[level].map.map(row => [...row]);
-  gameState = LEVELS[level].map.map(row => [...row]);
+/* 初始化/重置关卡 */
+function initGame(levelIdx) {
+  currentLevel = Math.min(LEVELS.length-1, Math.max(0, levelIdx));
+  const levelData = LEVELS[currentLevel];
+  baseMap = levelData.map.map(row => [...row]);
+  gameState = levelData.map.map(row => [...row]);
   moves = 0;
+  gameActive = true;
+  winTriggered = false;
   document.getElementById('winOverlay').classList.remove('show');
   document.getElementById('hintBar').classList.remove('show');
-  document.getElementById('levelNum').textContent = level + 1;
-  countBoxes();
-  render();
+  updateLevelDisplay();
+  updateStatsAndRender();
+}
+
+function updateStatsAndRender() {
+  renderGrid();
+  document.getElementById('moveCount').textContent = moves;
+  const { total, done } = countBoxes();
+  document.getElementById('totalBoxes').textContent = total;
+  document.getElementById('doneCount').innerHTML = `${done} / <span id="totalBoxes">${total}</span>`;
+  if (gameActive && !winTriggered) {
+    const hasUndoneBox = gameState.flat().some(cell => cell === 4);
+    if (!hasUndoneBox) triggerWin();
+  }
 }
 
 function countBoxes() {
-  let boxes = 0, done = 0;
-  gameState.forEach((row, r) => row.forEach((cell, c) => {
-    if (cell === 4) { boxes++; if (baseMap[r][c] === 2) done++; }
-    if (cell === 6) { boxes++; done++; }
-  }));
-  document.getElementById('totalBoxes').textContent = boxes;
-  document.getElementById('doneCount').textContent = done + ' / ';
-  return { boxes, done };
+  let total = 0, done = 0;
+  for (let r=0; r<gameState.length; r++) {
+    for (let c=0; c<gameState[0].length; c++) {
+      const val = gameState[r][c];
+      if (val === 4 || val === 6) total++;
+      if (val === 6) done++;
+    }
+  }
+  return { total, done };
 }
 
-/* ─── Render ─── */
-function render() {
-  const grid = document.getElementById('grid');
-  grid.innerHTML = '';
-  grid.style.gridTemplateColumns = `repeat(${gameState[0].length}, var(--tile-size))`;
-
-  gameState.forEach((row, r) => {
-    row.forEach((cell, c) => {
+function renderGrid() {
+  const gridDiv = document.getElementById('grid');
+  gridDiv.innerHTML = '';
+  const rows = gameState.length, cols = gameState[0].length;
+  gridDiv.style.gridTemplateColumns = `repeat(${cols}, var(--tile-size))`;
+  for (let r=0; r<rows; r++) {
+    for (let c=0; c<cols; c++) {
       const tile = document.createElement('div');
       tile.className = 'tile';
-      const base = baseMap[r][c];
+      const cell = gameState[r][c];
+      const baseCell = baseMap[r][c];
       if (cell === 1) tile.classList.add('wall');
-      if (base === 2) tile.classList.add('target');
+      if (baseCell === 2) tile.classList.add('target');
       if (cell === 3 || cell === 5) tile.classList.add('player');
       if (cell === 4 || cell === 6) {
         tile.classList.add('box');
         if (cell === 6) tile.classList.add('box-on-target');
       }
-      grid.appendChild(tile);
-    });
-  });
-
-  document.getElementById('moveCount').textContent = moves;
-  const { done } = countBoxes();
-  document.getElementById('doneCount').textContent = done + ' / ';
-
-  // Check win
-  const allDone = gameState.flat().every(c => c !== 4);
-  if (allDone && moves > 0) {
-    const boxes = gameState.flat().filter(c => c === 6).length;
-    if (boxes > 0) checkWin();
+      gridDiv.appendChild(tile);
+    }
   }
 }
 
-function checkWin() {
-  const boxes = LEVELS[currentLevel].map.flat().filter(c => c === 4).length;
-  const done  = gameState.flat().filter(c => c === 6).length;
-  if (done >= boxes) {
-    playSound('win');
-    document.getElementById('winSub').textContent = `共走了 ${moves} 步`;
-    document.getElementById('winOverlay').classList.add('show');
-  }
+function triggerWin() {
+  if (winTriggered) return;
+  winTriggered = true;
+  gameActive = false;
+  playSound('win');
+  document.getElementById('winSub').textContent = `✨ 共 ${moves} 步 ✨`;
+  const winOverlay = document.getElementById('winOverlay');
+  const nextBtn = document.getElementById('winNextBtn');
+  nextBtn.textContent = (currentLevel + 1 >= LEVELS.length) ? '🏁 通关完结' : '⏩ 下一关';
+  winOverlay.classList.add('show');
 }
 
-/* ─── Movement ─── */
-function movePlayer(dr, dc) {
+/* 移动逻辑 */
+function tryMove(dr, dc) {
+  if (!gameActive) return false;
   let pr = -1, pc = -1;
-  gameState.forEach((row, r) => row.forEach((cell, c) => {
-    if (cell === 3 || cell === 5) { pr = r; pc = c; }
-  }));
-  if (pr < 0) return;
-
-  const nr = pr + dr, nc = pc + dc;
-  if (nr < 0 || nr >= gameState.length || nc < 0 || nc >= gameState[0].length) return;
-  const targetCell = gameState[nr][nc];
-  const leaving = baseMap[pr][pc] === 2 ? 2 : 0;
-
-  if (targetCell === 0 || targetCell === 2) {
-    gameState[pr][pc] = leaving;
+  for (let r=0; r<gameState.length; r++) {
+    for (let c=0; c<gameState[0].length; c++) {
+      if (gameState[r][c] === 3 || gameState[r][c] === 5) { pr=r; pc=c; break; }
+    }
+    if (pr !== -1) break;
+  }
+  if (pr === -1) return false;
+  const nr = pr+dr, nc = pc+dc;
+  if (nr<0 || nr>=gameState.length || nc<0 || nc>=gameState[0].length) return false;
+  const target = gameState[nr][nc];
+  const leavingBase = baseMap[pr][pc] === 2 ? 2 : 0;
+  if (target === 0 || target === 2) {
+    gameState[pr][pc] = leavingBase;
     gameState[nr][nc] = (baseMap[nr][nc] === 2) ? 5 : 3;
     moves++;
     playSound('move');
-    render();
-  } else if (targetCell === 4 || targetCell === 6) {
-    const nnr = nr + dr, nnc = nc + dc;
-    if (nnr < 0 || nnr >= gameState.length || nnc < 0 || nnc >= gameState[0].length) return;
+    updateStatsAndRender();
+    return true;
+  }
+  else if (target === 4 || target === 6) {
+    const nnr = nr+dr, nnc = nc+dc;
+    if (nnr<0 || nnr>=gameState.length || nnc<0 || nnc>=gameState[0].length) return false;
     const beyond = gameState[nnr][nnc];
     if (beyond === 0 || beyond === 2) {
-      const isTarget = baseMap[nnr][nnc] === 2;
-      gameState[nnr][nnc] = isTarget ? 6 : 4;
-      gameState[nr][nc]   = (baseMap[nr][nc] === 2) ? 5 : 3;
-      gameState[pr][pc]   = leaving;
+      const isTargetSpot = baseMap[nnr][nnc] === 2;
+      gameState[nnr][nnc] = isTargetSpot ? 6 : 4;
+      gameState[nr][nc] = (baseMap[nr][nc] === 2) ? 5 : 3;
+      gameState[pr][pc] = leavingBase;
       moves++;
-      playSound(isTarget ? 'success' : 'push');
-      render();
+      playSound(isTargetSpot ? 'success' : 'push');
+      updateStatsAndRender();
+      return true;
     }
   }
+  return false;
 }
 
-/* ─── D-Pad Touch ─── */
-const dirMap = { up: [-1,0], down: [1,0], left: [0,-1], right: [0,1] };
-let dpadInterval = null;
-let dpadHolding = false;
+/* 关卡切换 */
+function changeLevel(delta) {
+  if (winTriggered) document.getElementById('winOverlay').classList.remove('show');
+  let newLevel = currentLevel + delta;
+  if (newLevel < 0) newLevel = 0;
+  if (newLevel >= LEVELS.length) newLevel = LEVELS.length - 1;
+  if (newLevel === currentLevel && delta !== 0) return;
+  currentLevel = newLevel;
+  initGame(currentLevel);
+}
 
+function updateLevelDisplay() {
+  document.getElementById('levelDisplay').innerHTML = `Lv.${currentLevel+1}/<span id="totalLevelsSpan">${LEVELS.length}</span>`;
+  document.getElementById('totalLevelsSpan').textContent = LEVELS.length;
+}
+
+/* UI绑定与方向键（修复长按重复触发） */
+const dirMap = { up: [-1,0], down: [1,0], left: [0,-1], right: [0,1] };
+function startRepeat(dir) {
+  if (dpadTimer) clearTimeout(dpadTimer);
+  if (dpadIntervalId) clearInterval(dpadIntervalId);
+  currentDirKey = dir;
+  dpadTimer = setTimeout(() => {
+    dpadIntervalId = setInterval(() => {
+      if (currentDirKey) tryMove(...dirMap[currentDirKey]);
+    }, 120);
+  }, 350);
+}
+function stopRepeat() {
+  if (dpadTimer) { clearTimeout(dpadTimer); dpadTimer = null; }
+  if (dpadIntervalId) { clearInterval(dpadIntervalId); dpadIntervalId = null; }
+  currentDirKey = null;
+}
 function handleDpadStart(e) {
   e.preventDefault();
-  const dir = e.currentTarget.dataset.dir;
-  e.currentTarget.classList.add('pressed');
+  const btn = e.currentTarget;
+  const dir = btn.dataset.dir;
+  btn.classList.add('pressed');
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-  movePlayer(...dirMap[dir]);
-  dpadHolding = true;
-  dpadInterval = setTimeout(() => {
-    if (dpadHolding) {
-      dpadInterval = setInterval(() => {
-        if (dpadHolding) movePlayer(...dirMap[dir]);
-      }, 120);
-    }
-  }, 350);
+  tryMove(...dirMap[dir]);
+  startRepeat(dir);
 }
 function handleDpadEnd(e) {
   e.currentTarget.classList.remove('pressed');
-  dpadHolding = false;
-  clearTimeout(dpadInterval);
-  clearInterval(dpadInterval);
+  stopRepeat();
+}
+function handleDpadCancel(e) {
+  if (e.currentTarget) e.currentTarget.classList.remove('pressed');
+  stopRepeat();
 }
 
-/* ─── Keyboard ─── */
-const keyMap = {
-  ArrowUp: [-1,0], ArrowDown: [1,0], ArrowLeft: [0,-1], ArrowRight: [0,1],
-  w: [-1,0], s: [1,0], a: [0,-1], d: [0,1],
-  W: [-1,0], S: [1,0], A: [0,-1], D: [0,1],
-};
+/* 键盘事件 */
 window.addEventListener('keydown', e => {
-  if (keyMap[e.key]) {
+  const mapping = { ArrowUp:[-1,0], ArrowDown:[1,0], ArrowLeft:[0,-1], ArrowRight:[0,1], w:[-1,0], s:[1,0], a:[0,-1], d:[0,1] };
+  if (mapping[e.key]) {
     e.preventDefault();
-    movePlayer(...keyMap[e.key]);
+    tryMove(...mapping[e.key]);
   }
 });
 
-/* ─── Swipe ─── */
-let touchStart = null;
-document.getElementById('grid').addEventListener('touchstart', e => {
-  touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-}, { passive: true });
-document.getElementById('grid').addEventListener('touchend', e => {
-  if (!touchStart) return;
-  const dx = e.changedTouches[0].clientX - touchStart.x;
-  const dy = e.changedTouches[0].clientY - touchStart.y;
-  const adx = Math.abs(dx), ady = Math.abs(dy);
-  if (Math.max(adx, ady) > 30) {
-    if (adx > ady) movePlayer(0, dx > 0 ? 1 : -1);
-    else movePlayer(dy > 0 ? 1 : -1, 0);
+/* 滑动控制 */
+let touchStartPos = null;
+const gridTouch = document.getElementById('grid');
+gridTouch.addEventListener('touchstart', e => { touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }, { passive: true });
+gridTouch.addEventListener('touchend', e => {
+  if (!touchStartPos) return;
+  const dx = e.changedTouches[0].clientX - touchStartPos.x;
+  const dy = e.changedTouches[0].clientY - touchStartPos.y;
+  if (Math.hypot(dx, dy) > 28) {
+    if (Math.abs(dx) > Math.abs(dy)) tryMove(0, dx>0 ? 1 : -1);
+    else tryMove(dy>0 ? 1 : -1, 0);
   }
-  touchStart = null;
-}, { passive: true });
+  touchStartPos = null;
+});
 
-/* ─── Theme ─── */
+/* 主题切换 */
 function toggleTheme() {
   const html = document.documentElement;
   const isDark = html.dataset.theme === 'dark';
   html.dataset.theme = isDark ? 'light' : 'dark';
   document.getElementById('themeIcon').textContent = isDark ? '🌙' : '☀️';
-  // Prefer system -> can also auto-detect:
   localStorage.setItem('theme', html.dataset.theme);
 }
-
-// Auto detect system theme
-(function() {
+function initTheme() {
   const saved = localStorage.getItem('theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const theme = saved || (prefersDark ? 'dark' : 'light');
   document.documentElement.dataset.theme = theme;
   document.getElementById('themeIcon').textContent = theme === 'dark' ? '☀️' : '🌙';
-})();
+}
 
-/* ─── Helpers ─── */
-function restartGame() { initGame(currentLevel); }
 function toggleHint() {
   const bar = document.getElementById('hintBar');
   bar.textContent = LEVELS[currentLevel].hint;
   bar.classList.toggle('show');
 }
+function restartGame() { initGame(currentLevel); }
+function nextLevelAction() {
+  if (currentLevel + 1 < LEVELS.length) changeLevel(1);
+  else { alert('🎉 恭喜通关！回到第一关继续挑战 🎉'); changeLevel(-currentLevel); }
+}
+function prevLevelAction() { changeLevel(-1); }
 
-/* ─── Start ─── */
+/* 事件绑定 */
+document.getElementById('themeBtn').addEventListener('click', toggleTheme);
+document.getElementById('restartBtn').addEventListener('click', restartGame);
+document.getElementById('hintBtn').addEventListener('click', toggleHint);
+document.getElementById('prevLevelBtn').addEventListener('click', prevLevelAction);
+document.getElementById('nextLevelBtn').addEventListener('click', nextLevelAction);
+document.getElementById('winRestartBtn').addEventListener('click', () => restartGame());
+document.getElementById('winNextBtn').addEventListener('click', () => {
+  if (currentLevel + 1 < LEVELS.length) nextLevelAction();
+  else { changeLevel(-currentLevel); }
+});
+document.querySelectorAll('.dpad-btn').forEach(btn => {
+  btn.addEventListener('touchstart', handleDpadStart, { passive: false });
+  btn.addEventListener('touchend', handleDpadEnd);
+  btn.addEventListener('touchcancel', handleDpadCancel);
+  btn.addEventListener('mousedown', handleDpadStart);
+  btn.addEventListener('mouseup', handleDpadEnd);
+  btn.addEventListener('mouseleave', handleDpadCancel);
+});
+
+/* 启动游戏 */
+initTheme();
 initGame(0);
 </script>
 </body>
