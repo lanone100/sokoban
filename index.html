@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Cubic Mind — 推箱子 | 定时炸弹·动态倒数</title>
+<title>Cubic Mind — 推箱子 | 高压炸弹·动态进度条</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@200;300;400&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-/* ───────────── CSS Variables (优化对比度) ───────────── */
+/* ───────────── CSS Variables ───────────── */
 :root {
   --bg-primary: #f5f5f7;
   --bg-secondary: #ffffff;
@@ -100,14 +100,62 @@ body {
   transition: background-color 0.1s;
 }
 
-/* 炸弹警告闪烁背景 */
-.game-container.warning-flash {
-  animation: warningBgFlash 0.4s ease-in-out infinite;
+/* ========= 顶部动态炸弹条 ========= */
+.bomb-progress-container {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  background: rgba(128,128,128,0.2);
+  border-radius: 3px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  display: none;
 }
-@keyframes warningBgFlash {
-  0% { background: var(--bg-card); }
-  50% { background: rgba(255, 59, 48, 0.15); backdrop-filter: blur(20px); }
-  100% { background: var(--bg-card); }
+.bomb-progress-bar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-red));
+  border-radius: 3px;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 4px rgba(0,122,255,0.5);
+}
+/* 低血量时增加脉冲光晕 */
+.bomb-progress-bar.critical {
+  box-shadow: 0 0 8px #ff3b30;
+  animation: pulseGlow 0.5s ease-in-out infinite;
+}
+@keyframes pulseGlow {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.3); }
+  100% { filter: brightness(1); }
+}
+
+/* 高压震动 (低于10秒时持续微震) */
+.game-container.shake-continuous {
+  animation: gentleShake 0.08s infinite ease-in-out;
+}
+@keyframes gentleShake {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(1px, 0) rotate(0.2deg); }
+  75% { transform: translate(-1px, 0) rotate(-0.2deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* 爆炸震动 (单次强烈) */
+.shake {
+  animation: shakeEffect 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+@keyframes shakeEffect {
+  0% { transform: translate(0, 0); }
+  10% { transform: translate(-4px, 0); }
+  20% { transform: translate(4px, 0); }
+  30% { transform: translate(-4px, 0); }
+  40% { transform: translate(4px, 0); }
+  50% { transform: translate(-2px, 0); }
+  60% { transform: translate(2px, 0); }
+  70% { transform: translate(-1px, 0); }
+  80% { transform: translate(1px, 0); }
+  100% { transform: translate(0, 0); }
 }
 
 /* 头部区域 */
@@ -176,14 +224,14 @@ body {
 }
 .stat-value.green { color: var(--accent-green); }
 
-/* 炸弹计时器面板 - 包含进度条 */
+/* 计时器数字面板 */
 .timer-pill {
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 6px 12px;
   text-align: center;
-  min-width: 120px;
+  min-width: 85px;
   transition: all 0.2s;
 }
 .timer-pill.bomb-active {
@@ -209,22 +257,6 @@ body {
 .timer-value.warning {
   color: var(--accent-red);
   animation: pulse 0.8s infinite;
-}
-/* 进度条 */
-.progress-bar-container {
-  width: 100%;
-  height: 4px;
-  background: rgba(128,128,128,0.3);
-  border-radius: 2px;
-  margin-top: 6px;
-  overflow: hidden;
-}
-.progress-bar {
-  height: 100%;
-  width: 100%;
-  background: var(--accent-red);
-  border-radius: 2px;
-  transition: width 0.2s linear;
 }
 @keyframes pulse {
   0% { opacity: 1; transform: scale(1); }
@@ -336,7 +368,7 @@ body {
 }
 @keyframes playerPop { from { transform: scale(0.9); } to { transform: scale(1); } }
 
-/* 炸弹爆炸特效 + 震动 */
+/* 爆炸特效 */
 .bomb-explosion {
   position: absolute;
   inset: 0;
@@ -348,21 +380,6 @@ body {
 @keyframes explode {
   0% { opacity: 1; transform: scale(0.5); }
   100% { opacity: 0; transform: scale(2.5); }
-}
-.shake {
-  animation: shakeEffect 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-}
-@keyframes shakeEffect {
-  0% { transform: translate(0, 0); }
-  10% { transform: translate(-4px, 0); }
-  20% { transform: translate(4px, 0); }
-  30% { transform: translate(-4px, 0); }
-  40% { transform: translate(4px, 0); }
-  50% { transform: translate(-2px, 0); }
-  60% { transform: translate(2px, 0); }
-  70% { transform: translate(-1px, 0); }
-  80% { transform: translate(1px, 0); }
-  100% { transform: translate(0, 0); }
 }
 
 /* 粒子特效 */
@@ -488,6 +505,11 @@ kbd { display: inline-block; padding: 1px 4px; background: var(--bg-primary); bo
 <div class="backdrop"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
 
 <div class="game-container" id="gameContainer">
+  <!-- 顶部动态炸弹条 -->
+  <div class="bomb-progress-container" id="bombProgressContainer">
+    <div class="bomb-progress-bar" id="bombProgressBar"></div>
+  </div>
+
   <!-- 胜利蒙层 -->
   <div class="win-overlay" id="winOverlay">
     <div class="win-emoji">🏆</div>
@@ -511,13 +533,9 @@ kbd { display: inline-block; padding: 1px 4px; background: var(--bg-primary); bo
       <div class="stat-pill"><div class="stat-label">步數</div><div class="stat-value" id="moveCount">0</div></div>
       <div class="stat-pill"><div class="stat-label">完成</div><div class="stat-value green" id="doneCount">0 / <span id="totalBoxes">0</span></div></div>
     </div>
-    <!-- 炸弹计时器面板 (含进度条) -->
     <div class="timer-pill" id="timerPill" style="display: none;">
       <div class="timer-label">💣 倒數</div>
       <div class="timer-value" id="timerValue">00</div>
-      <div class="progress-bar-container">
-        <div class="progress-bar" id="timerProgress"></div>
-      </div>
     </div>
     <div class="level-nav">
       <button class="level-nav-btn" id="prevLevelBtn">◀</button>
@@ -609,20 +627,18 @@ let dpadTimer = null, dpadIntervalId = null, currentDirKey = null;
 let bombTimerInterval = null;
 let bombTimerSeconds = 0;
 let bombTotalSeconds = 0;
-let beepInterval = null; // 最后5秒滴答音效的间隔
+let highFreqInterval = null; // 高频音效间隔
 
 /* 特效 */
 function addRippleEffect(tile) { if(!tile)return; const d=document.createElement('div'); d.className='ripple-effect'; tile.style.position='relative'; tile.appendChild(d); setTimeout(()=>d.remove(),400); }
 function addFlashEffect(tile) { if(!tile)return; const d=document.createElement('div'); d.className='flash-effect'; tile.style.position='relative'; tile.appendChild(d); setTimeout(()=>d.remove(),200); }
 function triggerExplosion() {
   const container = document.getElementById('gameContainer');
-  // 爆炸特效
   const explosion = document.createElement('div');
   explosion.className = 'bomb-explosion';
   container.style.overflow = 'hidden';
   container.appendChild(explosion);
   setTimeout(() => explosion.remove(), 600);
-  // 震动特效
   container.classList.add('shake');
   setTimeout(() => container.classList.remove('shake'), 300);
   playSound('explosion');
@@ -635,7 +651,7 @@ function triggerConfetti() {
 }
 if(typeof confetti==='undefined'){ const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/canvas-confetti@1'; document.head.appendChild(s); window.confetti=()=>{}; s.onload=()=>{ window.confetti=canvasConfetti; }; }
 
-/* 音频系统 (新增滴答音效) */
+/* 音频系统 (高压滴答音效) */
 function getAudio(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
 function playSound(type){
   if(!gameActive && type!=='win' && type!=='reset' && type!=='explosion' && type!=='tick') return;
@@ -660,91 +676,115 @@ function playSound(type){
       noise.buffer=buffer; noise.connect(gain); noise.start(); noise.stop(now+0.4);
     }
     else if(type==='tick'){ 
-      osc.type='sine'; osc.frequency.setValueAtTime(880,now); osc.frequency.exponentialRampToValueAtTime(440,now+0.05);
-      gain.gain.setValueAtTime(0.03,now); gain.gain.linearRampToValueAtTime(0,now+0.08);
+      osc.type='sine'; osc.frequency.setValueAtTime(1320,now); osc.frequency.exponentialRampToValueAtTime(880,now+0.03);
+      gain.gain.setValueAtTime(0.04,now); gain.gain.linearRampToValueAtTime(0,now+0.07);
     }
     osc.start(); osc.stop(now+0.6);
   }catch(e){}
 }
 
-/* 定时器控制 - 包含进度条、背景闪烁、滴答音效 */
+/* 炸弹计时器核心 */
 function startBombTimer(seconds) {
-  if(bombTimerInterval) clearInterval(bombTimerInterval);
-  if(beepInterval) clearInterval(beepInterval);
+  stopBombTimer(); // 确保完全停止
   bombTimerSeconds = seconds;
   bombTotalSeconds = seconds;
-  updateTimerDisplay();
-  // 移除警告闪烁类
-  document.getElementById('gameContainer').classList.remove('warning-flash');
+  updateBombUI();
+  // 主倒计时
   bombTimerInterval = setInterval(() => {
-    if(!gameActive || winTriggered) return;
+    if(!gameActive || winTriggered) {
+      // 游戏结束或胜利，停止倒计时
+      if(winTriggered) stopBombTimer();
+      return;
+    }
     if(bombTimerSeconds <= 1) {
-      // 炸弹爆炸，重置关卡
+      // 炸弹爆炸
       clearInterval(bombTimerInterval);
       bombTimerInterval = null;
-      if(beepInterval) clearInterval(beepInterval);
-      beepInterval = null;
+      if(highFreqInterval) clearInterval(highFreqInterval);
+      highFreqInterval = null;
       triggerExplosion();
       playSound('explosion');
-      // 重置当前关卡
-      initGame(currentLevel);
+      initGame(currentLevel); // 重置关卡
     } else {
       bombTimerSeconds--;
-      updateTimerDisplay();
-      // 检查是否需要背景闪烁 (剩余时间 <= 20%)
-      const remainingPercent = (bombTimerSeconds / bombTotalSeconds) * 100;
-      if(remainingPercent <= 20 && remainingPercent > 0) {
-        document.getElementById('gameContainer').classList.add('warning-flash');
+      updateBombUI();
+      // 高压同步音效：低于10秒时每0.5秒滴答一次，否则每1秒滴答一次
+      if(bombTimerSeconds <= 10) {
+        if(!highFreqInterval) {
+          highFreqInterval = setInterval(() => {
+            if(gameActive && !winTriggered && bombTimerSeconds <= 10 && bombTimerSeconds > 0) {
+              playSound('tick');
+            } else if(bombTimerSeconds <= 0 || winTriggered) {
+              if(highFreqInterval) clearInterval(highFreqInterval);
+            }
+          }, 500);
+        }
       } else {
-        document.getElementById('gameContainer').classList.remove('warning-flash');
-      }
-      // 最后5秒滴答音效
-      if(bombTimerSeconds <= 5 && bombTimerSeconds > 0) {
-        playSound('tick');
+        // 正常每秒滴答
+        if(!highFreqInterval) {
+          highFreqInterval = setInterval(() => {
+            if(gameActive && !winTriggered && bombTimerSeconds > 0) {
+              playSound('tick');
+            }
+          }, 1000);
+        }
       }
     }
   }, 1000);
-  // 最后5秒时启动每秒滴答（已经在上面每个秒都会触发，但为了更精确，可另外处理，但上面已经够了）
 }
 function stopBombTimer() {
-  if(bombTimerInterval) {
-    clearInterval(bombTimerInterval);
-    bombTimerInterval = null;
-  }
-  if(beepInterval) {
-    clearInterval(beepInterval);
-    beepInterval = null;
-  }
-  document.getElementById('gameContainer').classList.remove('warning-flash');
+  if(bombTimerInterval) { clearInterval(bombTimerInterval); bombTimerInterval = null; }
+  if(highFreqInterval) { clearInterval(highFreqInterval); highFreqInterval = null; }
+  // 移除震动和闪光
+  const container = document.getElementById('gameContainer');
+  container.classList.remove('shake-continuous');
+  const progressBar = document.getElementById('bombProgressBar');
+  if(progressBar) progressBar.classList.remove('critical');
 }
-function updateTimerDisplay() {
+function updateBombUI() {
+  const isBomb = LEVELS[currentLevel].bomb;
   const timerDiv = document.getElementById('timerPill');
   const timerValue = document.getElementById('timerValue');
-  const progressBar = document.getElementById('timerProgress');
-  const isBomb = LEVELS[currentLevel].bomb;
-  if(isBomb) {
+  const progressContainer = document.getElementById('bombProgressContainer');
+  const progressBar = document.getElementById('bombProgressBar');
+  
+  if(isBomb && bombTotalSeconds > 0) {
     timerDiv.style.display = 'block';
     timerDiv.classList.add('bomb-active');
     timerValue.textContent = bombTimerSeconds;
     if(bombTimerSeconds <= 5) timerValue.classList.add('warning');
     else timerValue.classList.remove('warning');
-    // 更新进度条宽度
+    
+    // 顶部进度条
+    progressContainer.style.display = 'block';
     const percent = (bombTimerSeconds / bombTotalSeconds) * 100;
     progressBar.style.width = `${percent}%`;
-    // 进度条颜色根据剩余百分比变化
-    if(percent <= 20) progressBar.style.backgroundColor = '#ff3b30';
-    else if(percent <= 50) progressBar.style.backgroundColor = '#ff9500';
-    else progressBar.style.backgroundColor = '#34c759';
+    // 颜色渐变：蓝→红由CSS渐变背景处理，无需额外逻辑，但可以加临界类
+    if(percent <= 20) {
+      progressBar.classList.add('critical');
+    } else {
+      progressBar.classList.remove('critical');
+    }
+    
+    // 震动控制：剩余时间低于10秒时启动持续微震，否则停止
+    const container = document.getElementById('gameContainer');
+    if(bombTimerSeconds <= 10 && bombTimerSeconds > 0) {
+      if(!container.classList.contains('shake-continuous')) {
+        container.classList.add('shake-continuous');
+      }
+    } else {
+      container.classList.remove('shake-continuous');
+    }
   } else {
     timerDiv.style.display = 'none';
-    timerDiv.classList.remove('bomb-active');
+    progressContainer.style.display = 'none';
+    document.getElementById('gameContainer').classList.remove('shake-continuous');
   }
 }
 
 /* 游戏逻辑 */
 function initGame(levelIdx){
-  // 停止任何现有计时器
-  stopBombTimer();
+  stopBombTimer(); // 重要：清理所有定时器
   currentLevel = Math.min(LEVELS.length-1, Math.max(0, levelIdx));
   const ld = LEVELS[currentLevel];
   baseMap = ld.map.map(r=>[...r]);
@@ -761,7 +801,7 @@ function initGame(levelIdx){
   if(ld.bomb && ld.timerStart) {
     startBombTimer(ld.timerStart);
   } else {
-    updateTimerDisplay(); // 确保隐藏
+    updateBombUI(); // 确保隐藏进度条
   }
 }
 function updateStatsAndRender(){
@@ -793,7 +833,7 @@ function getTile(r,c){ const idx=r*gameState[0].length+c; return document.queryS
 function triggerWin(){
   if(winTriggered) return;
   winTriggered=true; gameActive=false;
-  stopBombTimer(); // 胜利时停止计时器
+  stopBombTimer(); // 胜利时停止计时器及音效
   playSound('win'); triggerConfetti();
   document.getElementById('winSub').textContent=`✨ 共 ${moves} 步 ✨`;
   const nextBtn=document.getElementById('winNextBtn');
@@ -836,7 +876,7 @@ function tryMove(dr,dc){
 }
 function changeLevel(delta){
   if(winTriggered) document.getElementById('winOverlay').classList.remove('show');
-  stopBombTimer(); // 切换前停止计时
+  stopBombTimer(); // 切换前停止所有炸弹相关定时器
   let newLevel=currentLevel+delta;
   if(newLevel<0) newLevel=0;
   if(newLevel>=LEVELS.length) newLevel=LEVELS.length-1;
@@ -846,7 +886,6 @@ function changeLevel(delta){
 function updateLevelDisplay(){
   document.getElementById('levelDisplay').innerHTML = `Lv.${currentLevel+1}/<span id="totalLevelsSpan">${LEVELS.length}</span>`;
   document.getElementById('totalLevelsSpan').textContent=LEVELS.length;
-  // 在关卡号旁边添加炸弹标识（如果是炸弹关卡）
   const levelText = document.getElementById('levelDisplay');
   const existingBadge = levelText.querySelector('.bomb-badge');
   if(existingBadge) existingBadge.remove();
@@ -906,10 +945,7 @@ function initTheme(){
   document.getElementById('themeIcon').textContent=theme==='dark'?'☀️':'🌙';
 }
 function toggleHint(){ const bar=document.getElementById('hintBar'); bar.textContent=LEVELS[currentLevel].hint; bar.classList.toggle('show'); }
-function restartGame(){ 
-  stopBombTimer(); 
-  initGame(currentLevel); 
-}
+function restartGame(){ stopBombTimer(); initGame(currentLevel); }
 function nextLevelAction(){ if(currentLevel+1<LEVELS.length) changeLevel(1); else{ alert('🎉 恭喜通关！回到第一关继续挑战 🎉'); changeLevel(-currentLevel); } }
 function prevLevelAction(){ changeLevel(-1); }
 
