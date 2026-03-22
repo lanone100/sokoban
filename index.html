@@ -2,119 +2,193 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cubic Mind - 極簡推箱子</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cubic Mind Online - 極簡推箱子</title>
     <style>
         :root {
-            --bg-gradient: radial-gradient(circle at top left, #fdfbfb 0%, #ebedee 100%);
-            --glass-bg: rgba(255, 255, 255, 0.5);
+            --bg-gradient: radial-gradient(circle at 50% 50%, #f8f9fa 0%, #e9ecef 100%);
+            --glass-bg: rgba(255, 255, 255, 0.6);
             --player-color: #2c3e50;
             --box-color: #d4af37;
-            --target-glow: 0 0 15px rgba(255,255,255,0.8);
+            --wall-color: rgba(0, 0, 0, 0.08);
+            --target-border: rgba(0, 0, 0, 0.1);
         }
 
         body {
-            margin: 0; display: flex; justify-content: center; align-items: center;
-            height: 100vh; background: var(--bg-gradient);
-            font-family: -apple-system, system-ui, sans-serif;
+            margin: 0; padding: 0;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; background: var(--bg-gradient);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            touch-action: manipulation; /* 防止雙擊縮放 */
         }
 
+        /* 遊戲容器：自適應寬度 */
         .game-container {
-            background: var(--glass-bg); backdrop-filter: blur(25px);
-            border: 1px solid rgba(255,255,255,0.7); border-radius: 40px;
-            padding: 40px; box-shadow: 0 40px 80px rgba(0,0,0,0.05); text-align: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255,255,255,0.8);
+            border-radius: 35px;
+            padding: 25px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.05);
+            text-align: center;
+            max-width: 95vw;
         }
 
-        h1 { color: #444; font-weight: 200; letter-spacing: 5px; margin-bottom: 10px; }
-        .stats { margin-bottom: 25px; color: #888; font-size: 0.8rem; letter-spacing: 1px; }
+        h1 { color: #333; font-weight: 200; letter-spacing: 4px; margin: 10px 0; font-size: 1.5rem; }
+        .stats { margin-bottom: 15px; color: #888; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
 
+        /* 網格系統：固定尺寸確保不溢出 */
         #grid {
-            display: grid; gap: 6px; padding: 10px; background: rgba(0,0,0,0.02);
-            border-radius: 16px; position: relative;
+            display: grid;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 18px;
+            margin: 0 auto;
         }
 
         .tile {
-            width: 50px; height: 50px; border-radius: 10px;
+            width: 35px; height: 35px; /* 縮小尺寸以適應 10x10 */
+            border-radius: 8px;
             display: flex; justify-content: center; align-items: center;
-            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
 
-        .wall { background: rgba(0,0,0,0.04); }
-        .target { border: 2px solid rgba(255,255,255,0.9); box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
-        
+        /* 元素樣式 */
+        .wall { background: var(--wall-color); }
+        .target { border: 2.5px solid var(--target-border); box-sizing: border-box; }
         .player { 
-            background: var(--player-color); border-radius: 14px; 
-            box-shadow: 0 8px 20px rgba(44,62,80,0.3); z-index: 2;
+            background: var(--player-color); border-radius: 10px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 5;
         }
-
         .box { 
-            background: var(--box-color); border-radius: 8px; 
-            box-shadow: 0 6px 15px rgba(212,175,55,0.3); z-index: 1;
+            background: var(--box-color); border-radius: 6px; 
+            box-shadow: 0 4px 10px rgba(184, 134, 11, 0.3); z-index: 4;
         }
-
-        /* 箱子進入目標點的特效 */
         .box-on-target { 
-            background: #60b99a !important; transform: scale(0.95);
-            box-shadow: 0 0 20px rgba(96,185,154,0.5); 
+            background: #4cc9f0; /* 目標達成轉為亮藍色，更有科技感 */
+            box-shadow: 0 0 15px rgba(76, 201, 240, 0.5); 
         }
 
-        /* 移動時的微動畫 */
-        .moving { transform: scale(1.1); }
+        /* 按鈕組 */
+        .btn-group { margin-top: 20px; display: flex; justify-content: center; gap: 15px; }
+        button {
+            background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.8);
+            padding: 8px 20px; border-radius: 12px; cursor: pointer;
+            color: #555; font-size: 0.8rem; backdrop-filter: blur(5px);
+            transition: all 0.2s;
+        }
+        button:active { transform: scale(0.95); background: rgba(0,0,0,0.05); }
+
+        @media (max-width: 450px) {
+            .tile { width: 30px; height: 30px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="game-container">
+<div class="game-container" id="main-app">
     <h1>CUBIC MIND</h1>
-    <div class="stats">LEVEL 1 | MOVES: <span id="move-count">0</span></div>
+    <div class="stats">LEVEL: <span id="level-display">1</span> | MOVES: <span id="move-count">0</span></div>
+    
     <div id="grid"></div>
-    <div style="margin-top:20px; font-size:12px; color:#bbb;">按任意方向鍵開始 | 靜音請檢查系統音量</div>
+
+    <div class="btn-group">
+        <button onclick="resetCurrentLevel()">重設本關</button>
+        <button onclick="generateLevel()">下一隨機關卡</button>
+    </div>
 </div>
 
 <script>
-    const levelData = [
-        [1, 1, 1, 1, 1, 1, 1],
-        [1, 0, 0, 0, 2, 0, 1],
-        [1, 0, 4, 0, 0, 0, 1],
-        [1, 0, 3, 2, 4, 0, 1],
-        [1, 1, 1, 1, 1, 1, 1]
-    ];
+    const ROWS = 10, COLS = 10;
+    let moves = 0, currentLevel = 1;
+    let gameState = [], initialGameState = [], levelData = [];
+    let audioCtx = null;
 
-    let gameState = JSON.parse(JSON.stringify(levelData));
-    let moves = 0;
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // --- 音效初始化（修復 Chrome 禁止自動播放問題） ---
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
 
-    // --- 音效合成器函數 ---
     function playSound(type) {
+        if (!audioCtx) return;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
+        osc.connect(gain); gain.connect(audioCtx.destination);
         const now = audioCtx.currentTime;
+
         if (type === 'move') {
-            osc.type = 'sine'; osc.frequency.setValueAtTime(150, now);
-            osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.linearRampToValueAtTime(0, now + 0.1);
-        } else if (type === 'push') {
-            osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now);
+            osc.frequency.setValueAtTime(200, now);
+            osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
             gain.gain.setValueAtTime(0.05, now);
-            gain.gain.linearRampToValueAtTime(0, now + 0.15);
-        } else if (type === 'success') {
-            osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now); // C5
-            osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.3); // C6
+        } else if (type === 'push') {
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(400, now);
+            gain.gain.setValueAtTime(0.03, now);
+        } else if (type === 'win') {
+            osc.frequency.setValueAtTime(523, now);
+            osc.frequency.exponentialRampToValueAtTime(1046, now + 0.4);
             gain.gain.setValueAtTime(0.1, now);
-            gain.gain.linearRampToValueAtTime(0, now + 0.3);
         }
         osc.start(); osc.stop(now + 0.4);
+        gain.gain.linearRampToValueAtTime(0, now + 0.4);
+    }
+
+    // --- 改進版生成演算法 ---
+    function generateLevel() {
+        initAudio();
+        moves = 0;
+        let map = Array.from({ length: ROWS }, () => Array(COLS).fill(1));
+        
+        // 1. 建立更大的活動區域
+        for (let r = 1; r < ROWS - 1; r++) {
+            for (let c = 1; c < COLS - 1; c++) map[r][c] = 0;
+        }
+
+        // 2. 隨機放置箱子位置 (目標點)
+        let tr = Math.floor(Math.random()*4) + 3, tc = Math.floor(Math.random()*4) + 3;
+        map[tr][tc] = 2;
+        
+        let pr = tr, pc = tc + 1; // 玩家初始位子
+        let br = tr, bc = tc;     // 箱子初始位子 (在目標點上)
+
+        // 3. 逆向打亂 (保證有解)
+        for (let i = 0; i < 150; i++) {
+            const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+            const [dr, dc] = dirs[Math.floor(Math.random() * 4)];
+            const nr = pr + dr, nc = pc + dc;
+
+            if (nr > 0 && nr < ROWS-1 && nc > 0 && nc < COLS-1) {
+                if (nr === br && nc === bc) {
+                    const bnr = br + dr, bnc = bc + dc;
+                    if (bnr > 0 && bnr < ROWS-1 && bnc > 0 && bnc < COLS-1) {
+                        br = bnr; bc = bnc; pr = nr; pc = nc;
+                    }
+                } else {
+                    pr = nr; pc = nc;
+                }
+            }
+        }
+
+        levelData = map;
+        gameState = JSON.parse(JSON.stringify(map));
+        gameState[pr][pc] = 3; gameState[br][bc] = 4;
+        initialGameState = JSON.parse(JSON.stringify(gameState));
+        render();
+    }
+
+    function resetCurrentLevel() {
+        gameState = JSON.parse(JSON.stringify(initialGameState));
+        moves = 0;
+        render();
     }
 
     function render() {
         const gridElement = document.getElementById('grid');
+        gridElement.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
         gridElement.innerHTML = '';
-        gridElement.style.gridTemplateColumns = `repeat(${gameState[0].length}, 50px)`;
 
         gameState.forEach((row, r) => {
             row.forEach((cell, c) => {
@@ -131,44 +205,61 @@
             });
         });
         document.getElementById('move-count').innerText = moves;
+        checkWin();
     }
 
-    function movePlayer(dr, dc) {
-        if (audioCtx.state === 'suspended') audioCtx.resume();
+    function move(dr, dc) {
+        initAudio();
         let pr, pc;
         gameState.forEach((row, r) => row.forEach((cell, c) => { if (cell === 3) { pr = r; pc = c; } }));
 
         const nr = pr + dr, nc = pc + dc;
-        const targetCell = gameState[nr][nc];
+        if (gameState[nr][nc] === 1) return; // 撞牆
 
-        if (targetCell === 0 || targetCell === 2) {
+        if (gameState[nr][nc] === 0 || gameState[nr][nc] === 2) {
             gameState[pr][pc] = levelData[pr][pc] === 2 ? 2 : 0;
             gameState[nr][nc] = 3;
-            moves++;
-            playSound('move');
-        } else if (targetCell === 4) {
+            moves++; playSound('move');
+        } else if (gameState[nr][nc] === 4) {
             const nnr = nr + dr, nnc = nc + dc;
             if (gameState[nnr][nnc] === 0 || gameState[nnr][nnc] === 2) {
-                const wasOnTarget = levelData[nnr][nnc] === 2;
                 gameState[nnr][nnc] = 4;
                 gameState[nr][nc] = 3;
                 gameState[pr][pc] = levelData[pr][pc] === 2 ? 2 : 0;
-                moves++;
-                playSound(wasOnTarget ? 'success' : 'push');
+                moves++; playSound('push');
             }
         }
         render();
     }
 
+    function checkWin() {
+        let boxOnTargets = 0, totalTargets = 0;
+        levelData.forEach((row, r) => row.forEach((cell, c) => {
+            if (cell === 2) {
+                totalTargets++;
+                if (gameState[r][c] === 4) boxOnTargets++;
+            }
+        }));
+        if (boxOnTargets === totalTargets && moves > 0) {
+            playSound('win');
+            setTimeout(() => {
+                alert("Perfect! 成功歸位。");
+                currentLevel++;
+                document.getElementById('level-display').innerText = currentLevel;
+                generateLevel();
+            }, 300);
+        }
+    }
+
     window.addEventListener('keydown', (e) => {
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
             e.preventDefault();
-            const directions = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
-            movePlayer(...directions[e.key]);
+            const d = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+            move(...d[e.key]);
         }
     });
 
-    render();
+    window.onload = generateLevel;
 </script>
 
 </body>
