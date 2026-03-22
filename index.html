@@ -1,265 +1,322 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cubic Mind Online - 極簡推箱子</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Cubic Mind - 極簡推箱子旗艦版</title>
     <style>
+        /* Apple 系統字體與變數定義 */
         :root {
-            --bg-gradient: radial-gradient(circle at 50% 50%, #f8f9fa 0%, #e9ecef 100%);
-            --glass-bg: rgba(255, 255, 255, 0.6);
-            --player-color: #2c3e50;
-            --box-color: #d4af37;
-            --wall-color: rgba(0, 0, 0, 0.08);
-            --target-border: rgba(0, 0, 0, 0.1);
+            --bg-color: #F2F2F7;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --text-main: #1C1C1E;
+            --text-sub: #8E8E93;
+            --accent: #007AFF;
+            --grid-bg: rgba(0, 0, 0, 0.03);
+            --tile-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --box-color: #FFD60A;
+            --player-color: #1C1C1E;
+            --safe-area-bottom: env(safe-area-inset-bottom);
         }
+
+        /* 深色模式變數 */
+        [data-theme="dark"] {
+            --bg-color: #000000;
+            --card-bg: rgba(28, 28, 30, 0.8);
+            --text-main: #FFFFFF;
+            --text-sub: #98989D;
+            --accent: #0A84FF;
+            --grid-bg: rgba(255, 255, 255, 0.1);
+            --tile-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --box-color: #FFD60A;
+            --player-color: #F2F2F7;
+        }
+
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 
         body {
             margin: 0; padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
             display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; background: var(--bg-gradient);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            touch-action: manipulation; /* 防止雙擊縮放 */
+            min-height: 100vh; overflow: hidden;
+            transition: background 0.5s ease;
         }
 
-        /* 遊戲容器：自適應寬度 */
-        .game-container {
-            background: var(--glass-bg);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid rgba(255,255,255,0.8);
-            border-radius: 35px;
-            padding: 25px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.05);
-            text-align: center;
-            max-width: 95vw;
+        /* 主容器 */
+        .app-wrapper {
+            width: 100%; max-width: 500px;
+            padding: 20px; display: flex; flex-direction: column;
+            height: 100vh; justify-content: space-between;
         }
 
-        h1 { color: #333; font-weight: 200; letter-spacing: 4px; margin: 10px 0; font-size: 1.5rem; }
-        .stats { margin-bottom: 15px; color: #888; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
-
-        /* 網格系統：固定尺寸確保不溢出 */
-        #grid {
-            display: grid;
-            gap: 4px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px;
-            border-radius: 18px;
-            margin: 0 auto;
+        /* 頂部標題列 */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 5px;
+        }
+        h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin: 0; }
+        
+        /* 模式切換按鈕 */
+        .theme-toggle {
+            width: 40px; height: 40px; border-radius: 20px;
+            background: var(--card-bg); border: 1px solid var(--glass-border);
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
         }
 
-        .tile {
-            width: 35px; height: 35px; /* 縮小尺寸以適應 10x10 */
-            border-radius: 8px;
-            display: flex; justify-content: center; align-items: center;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        /* 遊戲資訊板 */
+        .info-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px; padding: 15px 20px;
+            display: flex; justify-content: space-around;
+            margin: 15px 0; box-shadow: var(--tile-shadow);
+        }
+        .stat-item { text-align: center; }
+        .stat-label { font-size: 10px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+        /* 10x10 遊戲網格 */
+        .grid-container {
+            width: 100%; aspect-ratio: 1 / 1;
+            background: var(--grid-bg);
+            border-radius: 28px; padding: 8px;
+            display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px;
             position: relative;
         }
 
-        /* 元素樣式 */
-        .wall { background: var(--wall-color); }
-        .target { border: 2.5px solid var(--target-border); box-sizing: border-box; }
+        .tile {
+            border-radius: 6px; position: relative;
+            transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .wall { background: rgba(142, 142, 147, 0.15); }
+        .target { 
+            border: 1.5px solid var(--accent); 
+            display: flex; justify-content: center; align-items: center;
+        }
+        .target::after { content: ''; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; }
+
         .player { 
-            background: var(--player-color); border-radius: 10px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 5;
+            background: var(--player-color); border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 10;
         }
         .box { 
-            background: var(--box-color); border-radius: 6px; 
-            box-shadow: 0 4px 10px rgba(184, 134, 11, 0.3); z-index: 4;
+            background: var(--box-color); border-radius: 5px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 5;
+            display: flex; justify-content: center; align-items: center;
         }
-        .box-on-target { 
-            background: #4cc9f0; /* 目標達成轉為亮藍色，更有科技感 */
-            box-shadow: 0 0 15px rgba(76, 201, 240, 0.5); 
-        }
+        .box-on-target { background: #34C759 !important; transform: scale(0.9); }
 
-        /* 按鈕組 */
-        .btn-group { margin-top: 20px; display: flex; justify-content: center; gap: 15px; }
-        button {
-            background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.8);
-            padding: 8px 20px; border-radius: 12px; cursor: pointer;
-            color: #555; font-size: 0.8rem; backdrop-filter: blur(5px);
-            transition: all 0.2s;
+        /* 底部控制區 */
+        .footer { padding-bottom: calc(20px + var(--safe-area-bottom)); }
+        
+        .controls {
+            display: grid; grid-template-areas: ". up ." "left down right";
+            gap: 10px; justify-content: center; margin-top: 20px;
         }
-        button:active { transform: scale(0.95); background: rgba(0,0,0,0.05); }
+        .ctrl-btn {
+            width: 60px; height: 60px; border-radius: 18px;
+            background: var(--card-bg); border: 1px solid var(--glass-border);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 20px; box-shadow: var(--tile-shadow);
+        }
+        .ctrl-btn:active { transform: scale(0.9); background: var(--accent); color: white; }
 
-        @media (max-width: 450px) {
-            .tile { width: 30px; height: 30px; }
+        .action-btns { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+        .sub-btn {
+            padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
+            background: var(--card-bg); border: none; color: var(--text-main);
         }
     </style>
 </head>
 <body>
 
-<div class="game-container" id="main-app">
-    <h1>CUBIC MIND</h1>
-    <div class="stats">LEVEL: <span id="level-display">1</span> | MOVES: <span id="move-count">0</span></div>
-    
-    <div id="grid"></div>
+<div class="app-wrapper">
+    <div class="header">
+        <h1>Cubic Mind</h1>
+        <div class="theme-toggle" onclick="toggleTheme()">🌓</div>
+    </div>
 
-    <div class="btn-group">
-        <button onclick="resetCurrentLevel()">重設本關</button>
-        <button onclick="generateLevel()">下一隨機關卡</button>
+    <div class="info-card">
+        <div class="stat-item">
+            <div class="stat-label">關卡</div>
+            <div class="stat-value" id="level-val">1</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">步數</div>
+            <div class="stat-value" id="move-val">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">最佳</div>
+            <div class="stat-value" id="best-val">-</div>
+        </div>
+    </div>
+
+    <div class="grid-container" id="game-grid"></div>
+
+    <div class="footer">
+        <div class="controls" id="mobile-ctrl">
+            <div class="ctrl-btn" style="grid-area: up" onclick="handleMove('ArrowUp')">▲</div>
+            <div class="ctrl-btn" style="grid-area: left" onclick="handleMove('ArrowLeft')">◀</div>
+            <div class="ctrl-btn" style="grid-area: down" onclick="handleMove('ArrowDown')">▼</div>
+            <div class="ctrl-btn" style="grid-area: right" onclick="handleMove('ArrowRight')">▶</div>
+        </div>
+        <div class="action-btns">
+            <button class="sub-btn" onclick="resetLevel()">重設</button>
+            <button class="sub-btn" onclick="nextLevel()">隨機生成</button>
+        </div>
     </div>
 </div>
 
 <script>
-    const ROWS = 10, COLS = 10;
-    let moves = 0, currentLevel = 1;
-    let gameState = [], initialGameState = [], levelData = [];
+    const GRID_SIZE = 10;
+    let moves = 0, level = 1, bestMoves = Infinity;
+    let gameState = [], levelTemplate = [];
     let audioCtx = null;
 
-    // --- 音效初始化（修復 Chrome 禁止自動播放問題） ---
-    function initAudio() {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
+    // --- 主題切換 ---
+    function toggleTheme() {
+        const doc = document.documentElement;
+        const current = doc.getAttribute('data-theme');
+        doc.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+        vibrate(10);
     }
 
-    function playSound(type) {
-        if (!audioCtx) return;
+    // --- 觸覺反饋 ---
+    function vibrate(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
+
+    // --- 音效系統 ---
+    function playStepSound(type) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain); gain.connect(audioCtx.destination);
+        
         const now = audioCtx.currentTime;
-
-        if (type === 'move') {
-            osc.frequency.setValueAtTime(200, now);
-            osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
-            gain.gain.setValueAtTime(0.05, now);
-        } else if (type === 'push') {
-            osc.type = 'triangle'; osc.frequency.setValueAtTime(400, now);
-            gain.gain.setValueAtTime(0.03, now);
-        } else if (type === 'win') {
-            osc.frequency.setValueAtTime(523, now);
-            osc.frequency.exponentialRampToValueAtTime(1046, now + 0.4);
+        if (type === 'push') {
+            osc.frequency.setValueAtTime(150, now);
             gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        } else {
+            osc.frequency.setValueAtTime(400, now);
+            gain.gain.setValueAtTime(0.05, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
         }
-        osc.start(); osc.stop(now + 0.4);
-        gain.gain.linearRampToValueAtTime(0, now + 0.4);
+        osc.start(); osc.stop(now + 0.1);
     }
 
-    // --- 改進版生成演算法 ---
-    function generateLevel() {
-        initAudio();
+    // --- 地圖生成器 (優化 10x10) ---
+    function initMap() {
         moves = 0;
-        let map = Array.from({ length: ROWS }, () => Array(COLS).fill(1));
+        document.getElementById('move-val').innerText = moves;
+        let map = Array.from({length: GRID_SIZE}, () => Array(GRID_SIZE).fill(1));
         
-        // 1. 建立更大的活動區域
-        for (let r = 1; r < ROWS - 1; r++) {
-            for (let c = 1; c < COLS - 1; c++) map[r][c] = 0;
-        }
+        // 建立內部空間
+        for(let r=1; r<9; r++) for(let c=1; c<9; c++) map[r][c] = 0;
 
-        // 2. 隨機放置箱子位置 (目標點)
-        let tr = Math.floor(Math.random()*4) + 3, tc = Math.floor(Math.random()*4) + 3;
-        map[tr][tc] = 2;
-        
-        let pr = tr, pc = tc + 1; // 玩家初始位子
-        let br = tr, bc = tc;     // 箱子初始位子 (在目標點上)
+        // 隨機目標
+        let tr = 4, tc = 4; map[tr][tc] = 2;
+        let pr = 4, pc = 5, br = 4, bc = 4;
 
-        // 3. 逆向打亂 (保證有解)
-        for (let i = 0; i < 150; i++) {
-            const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-            const [dr, dc] = dirs[Math.floor(Math.random() * 4)];
-            const nr = pr + dr, nc = pc + dc;
-
-            if (nr > 0 && nr < ROWS-1 && nc > 0 && nc < COLS-1) {
-                if (nr === br && nc === bc) {
-                    const bnr = br + dr, bnc = bc + dc;
-                    if (bnr > 0 && bnr < ROWS-1 && bnc > 0 && bnc < COLS-1) {
-                        br = bnr; bc = bnc; pr = nr; pc = nc;
-                    }
-                } else {
-                    pr = nr; pc = nc;
-                }
+        // 逆向打亂步數增加到 180 次
+        for(let i=0; i<180; i++) {
+            const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
+            const [dr, dc] = dirs[Math.floor(Math.random()*4)];
+            const nr = pr+dr, nc = pc+dc;
+            if(nr>0 && nr<9 && nc>0 && nc<9) {
+                if(nr===br && nc===bc) {
+                    const bnr = br+dr, bnc = bc+dc;
+                    if(bnr>0 && bnr<9 && bnc>0 && bnc<9) { br=bnr; bc=bnc; pr=nr; pc=nc; }
+                } else { pr=nr; pc=nc; }
             }
         }
 
-        levelData = map;
+        levelTemplate = JSON.parse(JSON.stringify(map));
         gameState = JSON.parse(JSON.stringify(map));
         gameState[pr][pc] = 3; gameState[br][bc] = 4;
-        initialGameState = JSON.parse(JSON.stringify(gameState));
-        render();
-    }
-
-    function resetCurrentLevel() {
-        gameState = JSON.parse(JSON.stringify(initialGameState));
-        moves = 0;
         render();
     }
 
     function render() {
-        const gridElement = document.getElementById('grid');
-        gridElement.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
-        gridElement.innerHTML = '';
-
+        const grid = document.getElementById('game-grid');
+        grid.innerHTML = '';
         gameState.forEach((row, r) => {
             row.forEach((cell, c) => {
-                const tile = document.createElement('div');
-                tile.className = 'tile';
-                if (cell === 1) tile.classList.add('wall');
-                if (levelData[r][c] === 2) tile.classList.add('target');
-                if (cell === 3) tile.classList.add('player');
-                if (cell === 4) {
-                    tile.classList.add('box');
-                    if (levelData[r][c] === 2) tile.classList.add('box-on-target');
+                const el = document.createElement('div');
+                el.className = 'tile';
+                if(cell === 1) el.classList.add('wall');
+                if(levelTemplate[r][c] === 2) el.classList.add('target');
+                if(cell === 3) el.classList.add('player');
+                if(cell === 4) {
+                    el.classList.add('box');
+                    if(levelTemplate[r][c] === 2) el.classList.add('box-on-target');
                 }
-                gridElement.appendChild(tile);
+                grid.appendChild(el);
             });
         });
-        document.getElementById('move-count').innerText = moves;
+    }
+
+    function handleMove(key) {
+        let dr=0, dc=0;
+        if(key === 'ArrowUp') dr=-1;
+        if(key === 'ArrowDown') dr=1;
+        if(key === 'ArrowLeft') dc=-1;
+        if(key === 'ArrowRight') dc=1;
+
+        let pr, pc;
+        gameState.forEach((row, r) => row.forEach((cell, c) => { if(cell===3) {pr=r; pc=c;} }));
+        const nr = pr+dr, nc = pc+dc;
+
+        if(gameState[nr][nc] === 1) return;
+
+        if(gameState[nr][nc] === 0 || gameState[nr][nc] === 2) {
+            gameState[pr][pc] = levelTemplate[pr][pc] === 2 ? 2 : 0;
+            gameState[nr][nc] = 3;
+            moves++; playStepSound('move');
+        } else if(gameState[nr][nc] === 4) {
+            const nnr = nr+dr, nnc = nc+dc;
+            if(gameState[nnr][nnc] === 0 || gameState[nnr][nnc] === 2) {
+                gameState[nnr][nnc] = 4;
+                gameState[nr][nc] = 3;
+                gameState[pr][pc] = levelTemplate[pr][pc] === 2 ? 2 : 0;
+                moves++; playStepSound('push');
+            }
+        }
+        vibrate(5);
+        document.getElementById('move-val').innerText = moves;
+        render();
         checkWin();
     }
 
-    function move(dr, dc) {
-        initAudio();
-        let pr, pc;
-        gameState.forEach((row, r) => row.forEach((cell, c) => { if (cell === 3) { pr = r; pc = c; } }));
-
-        const nr = pr + dr, nc = pc + dc;
-        if (gameState[nr][nc] === 1) return; // 撞牆
-
-        if (gameState[nr][nc] === 0 || gameState[nr][nc] === 2) {
-            gameState[pr][pc] = levelData[pr][pc] === 2 ? 2 : 0;
-            gameState[nr][nc] = 3;
-            moves++; playSound('move');
-        } else if (gameState[nr][nc] === 4) {
-            const nnr = nr + dr, nnc = nc + dc;
-            if (gameState[nnr][nnc] === 0 || gameState[nnr][nnc] === 2) {
-                gameState[nnr][nnc] = 4;
-                gameState[nr][nc] = 3;
-                gameState[pr][pc] = levelData[pr][pc] === 2 ? 2 : 0;
-                moves++; playSound('push');
-            }
-        }
-        render();
-    }
-
     function checkWin() {
-        let boxOnTargets = 0, totalTargets = 0;
-        levelData.forEach((row, r) => row.forEach((cell, c) => {
-            if (cell === 2) {
-                totalTargets++;
-                if (gameState[r][c] === 4) boxOnTargets++;
-            }
+        let win = true;
+        levelTemplate.forEach((row, r) => row.forEach((cell, c) => {
+            if(cell === 2 && gameState[r][c] !== 4) win = false;
         }));
-        if (boxOnTargets === totalTargets && moves > 0) {
-            playSound('win');
+        if(win && moves > 0) {
             setTimeout(() => {
-                alert("Perfect! 成功歸位。");
-                currentLevel++;
-                document.getElementById('level-display').innerText = currentLevel;
-                generateLevel();
+                alert(`太棒了！步數：${moves}`);
+                if(moves < bestMoves) {
+                    bestMoves = moves;
+                    document.getElementById('best-val').innerText = bestMoves;
+                }
+                level++;
+                document.getElementById('level-val').innerText = level;
+                initMap();
             }, 300);
         }
     }
 
-    window.addEventListener('keydown', (e) => {
-        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-            e.preventDefault();
-            const d = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
-            move(...d[e.key]);
-        }
-    });
+    function resetLevel() { gameState = JSON.parse(JSON.stringify(levelTemplate)); moves=0; render(); }
+    function nextLevel() { initMap(); }
 
-    window.onload = generateLevel;
+    window.addEventListener('keydown', (e) => handleMove(e.key));
+    window.onload = initMap;
 </script>
 
 </body>
