@@ -1,323 +1,783 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Cubic Mind - 極簡推箱子旗艦版</title>
-    <style>
-        /* Apple 系統字體與變數定義 */
-        :root {
-            --bg-color: #F2F2F7;
-            --card-bg: rgba(255, 255, 255, 0.7);
-            --text-main: #1C1C1E;
-            --text-sub: #8E8E93;
-            --accent: #007AFF;
-            --grid-bg: rgba(0, 0, 0, 0.03);
-            --tile-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            --glass-border: rgba(255, 255, 255, 0.5);
-            --box-color: #FFD60A;
-            --player-color: #1C1C1E;
-            --safe-area-bottom: env(safe-area-inset-bottom);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cubic Mind — 推箱子</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@200;300;400&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ───────────── CSS Variables ───────────── */
+:root {
+  /* Light Mode */
+  --bg-primary: #f2f2f7;
+  --bg-secondary: #ffffff;
+  --bg-card: rgba(255,255,255,0.72);
+  --bg-glass: rgba(255,255,255,0.55);
+  --border-color: rgba(0,0,0,0.08);
+  --border-light: rgba(255,255,255,0.9);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.10), 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
 
-        /* 深色模式變數 */
-        [data-theme="dark"] {
-            --bg-color: #000000;
-            --card-bg: rgba(28, 28, 30, 0.8);
-            --text-main: #FFFFFF;
-            --text-sub: #98989D;
-            --accent: #0A84FF;
-            --grid-bg: rgba(255, 255, 255, 0.1);
-            --tile-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --box-color: #FFD60A;
-            --player-color: #F2F2F7;
-        }
+  --text-primary: #1c1c1e;
+  --text-secondary: #636366;
+  --text-tertiary: #aeaeb2;
 
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  --accent-blue: #007aff;
+  --accent-indigo: #5856d6;
+  --accent-purple: #af52de;
+  --accent-teal: #32ade6;
+  --accent-green: #34c759;
+  --accent-orange: #ff9500;
+  --accent-red: #ff3b30;
 
-        body {
-            margin: 0; padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; overflow: hidden;
-            transition: background 0.5s ease;
-        }
+  /* Game tile colors */
+  --tile-wall: rgba(142,142,147,0.12);
+  --tile-floor: transparent;
+  --tile-target-border: rgba(50,173,230,0.4);
+  --tile-target-bg: rgba(50,173,230,0.06);
+  --player-bg: linear-gradient(145deg, #1c1c1e 0%, #3a3a3c 100%);
+  --player-shadow: 0 6px 18px rgba(28,28,30,0.35);
+  --box-bg: linear-gradient(145deg, #f0b429 0%, #d4870a 100%);
+  --box-shadow: 0 6px 18px rgba(212,135,10,0.4);
+  --box-done-bg: linear-gradient(145deg, #30d158 0%, #1a9e42 100%);
+  --box-done-shadow: 0 6px 18px rgba(48,209,88,0.45);
 
-        /* 主容器 */
-        .app-wrapper {
-            width: 100%; max-width: 500px;
-            padding: 20px; display: flex; flex-direction: column;
-            height: 100vh; justify-content: space-between;
-        }
+  --grid-gap: 5px;
+  --tile-size: 52px;
+  --tile-radius: 12px;
+}
 
-        /* 頂部標題列 */
-        .header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 5px;
-        }
-        h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin: 0; }
-        
-        /* 模式切換按鈕 */
-        .theme-toggle {
-            width: 40px; height: 40px; border-radius: 20px;
-            background: var(--card-bg); border: 1px solid var(--glass-border);
-            display: flex; justify-content: center; align-items: center; cursor: pointer;
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-        }
+[data-theme="dark"] {
+  --bg-primary: #000000;
+  --bg-secondary: #1c1c1e;
+  --bg-card: rgba(28,28,30,0.85);
+  --bg-glass: rgba(28,28,30,0.6);
+  --border-color: rgba(255,255,255,0.08);
+  --border-light: rgba(255,255,255,0.12);
+  --shadow-lg: 0 20px 60px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.4);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
 
-        /* 遊戲資訊板 */
-        .info-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px; padding: 15px 20px;
-            display: flex; justify-content: space-around;
-            margin: 15px 0; box-shadow: var(--tile-shadow);
-        }
-        .stat-item { text-align: center; }
-        .stat-label { font-size: 10px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
-        .stat-value { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  --text-primary: #ffffff;
+  --text-secondary: #aeaeb2;
+  --text-tertiary: #636366;
 
-        /* 10x10 遊戲網格 */
-        .grid-container {
-            width: 100%; aspect-ratio: 1 / 1;
-            background: var(--grid-bg);
-            border-radius: 28px; padding: 8px;
-            display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px;
-            position: relative;
-        }
+  --tile-wall: rgba(99,99,102,0.18);
+  --tile-target-border: rgba(50,173,230,0.45);
+  --tile-target-bg: rgba(50,173,230,0.08);
+  --player-bg: linear-gradient(145deg, #f2f2f7 0%, #d1d1d6 100%);
+  --player-shadow: 0 6px 18px rgba(242,242,247,0.2);
+  --box-bg: linear-gradient(145deg, #ffd60a 0%, #f0a80a 100%);
+  --box-shadow: 0 6px 18px rgba(255,214,10,0.35);
+}
 
-        .tile {
-            border-radius: 6px; position: relative;
-            transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        .wall { background: rgba(142, 142, 147, 0.15); }
-        .target { 
-            border: 1.5px solid var(--accent); 
-            display: flex; justify-content: center; align-items: center;
-        }
-        .target::after { content: ''; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; }
+/* ───────────── Reset & Base ───────────── */
+*, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        .player { 
-            background: var(--player-color); border-radius: 8px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 10;
-        }
-        .box { 
-            background: var(--box-color); border-radius: 5px; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 5;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .box-on-target { background: #34C759 !important; transform: scale(0.9); }
+html, body {
+  margin: 0; padding: 0;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
 
-        /* 底部控制區 */
-        .footer { padding-bottom: calc(20px + var(--safe-area-bottom)); }
-        
-        .controls {
-            display: grid; grid-template-areas: ". up ." "left down right";
-            gap: 10px; justify-content: center; margin-top: 20px;
-        }
-        .ctrl-btn {
-            width: 60px; height: 60px; border-radius: 18px;
-            background: var(--card-bg); border: 1px solid var(--glass-border);
-            display: flex; justify-content: center; align-items: center;
-            font-size: 20px; box-shadow: var(--tile-shadow);
-        }
-        .ctrl-btn:active { transform: scale(0.9); background: var(--accent); color: white; }
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Noto Sans TC', -apple-system, system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  transition: background 0.3s ease, color 0.3s ease;
+}
 
-        .action-btns { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
-        .sub-btn {
-            padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
-            background: var(--card-bg); border: none; color: var(--text-main);
-        }
-    </style>
+/* ───────────── Animated Backdrop ───────────── */
+.backdrop {
+  position: fixed; inset: 0; z-index: 0;
+  overflow: hidden; pointer-events: none;
+}
+.orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(80px); opacity: 0.5;
+  animation: float 12s ease-in-out infinite alternate;
+}
+.orb-1 { width: 420px; height: 420px; top: -100px; left: -100px;
+  background: radial-gradient(circle, rgba(88,86,214,0.35), transparent 70%); }
+.orb-2 { width: 300px; height: 300px; bottom: -80px; right: -60px;
+  background: radial-gradient(circle, rgba(50,173,230,0.3), transparent 70%);
+  animation-delay: -4s; }
+.orb-3 { width: 250px; height: 250px; top: 40%; left: 50%;
+  background: radial-gradient(circle, rgba(175,82,222,0.2), transparent 70%);
+  animation-delay: -8s; }
+
+[data-theme="dark"] .orb { opacity: 0.6; }
+
+@keyframes float {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(30px, 20px) scale(1.05); }
+}
+
+/* ───────────── Main Card ───────────── */
+.game-container {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 420px;
+  background: var(--bg-card);
+  backdrop-filter: blur(30px) saturate(1.8);
+  -webkit-backdrop-filter: blur(30px) saturate(1.8);
+  border: 1px solid var(--border-color);
+  border-radius: 32px;
+  padding: 28px 24px 24px;
+  box-shadow: var(--shadow-lg);
+}
+
+/* ───────────── Header ───────────── */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.title-group { display: flex; flex-direction: column; }
+
+.title {
+  font-size: 22px; font-weight: 300;
+  letter-spacing: 0.12em;
+  color: var(--text-primary);
+  line-height: 1;
+}
+.title span { color: var(--accent-indigo); font-weight: 400; }
+
+.subtitle {
+  font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+  color: var(--text-tertiary); margin-top: 3px; font-weight: 400;
+}
+
+/* Theme Toggle */
+.theme-btn {
+  width: 44px; height: 26px; border-radius: 13px; border: none; cursor: pointer;
+  position: relative; padding: 0;
+  background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple));
+  box-shadow: 0 2px 8px rgba(88,86,214,0.4);
+  transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  flex-shrink: 0;
+}
+.theme-btn::before {
+  content: '';
+  position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: white;
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+[data-theme="dark"] .theme-btn::before { transform: translateX(18px); }
+.theme-icon { position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; font-size: 11px; pointer-events: none; }
+
+/* ───────────── Stats Bar ───────────── */
+.stats-bar {
+  display: flex; gap: 8px; margin: 16px 0 18px;
+}
+.stat-pill {
+  flex: 1; background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 14px; padding: 10px 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  transition: background 0.3s;
+}
+.stat-label {
+  font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--text-tertiary); font-weight: 500;
+}
+.stat-value {
+  font-size: 20px; font-weight: 300; color: var(--text-primary);
+  line-height: 1; font-variant-numeric: tabular-nums;
+}
+.stat-value.accent { color: var(--accent-blue); }
+.stat-value.green  { color: var(--accent-green); }
+
+/* ───────────── Grid ───────────── */
+#grid {
+  display: grid;
+  gap: var(--grid-gap);
+  padding: 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  width: fit-content;
+  margin: 0 auto;
+  transition: background 0.3s;
+}
+
+.tile {
+  width: var(--tile-size); height: var(--tile-size);
+  border-radius: var(--tile-radius);
+  display: flex; justify-content: center; align-items: center;
+  position: relative;
+  transition: transform 0.18s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+
+.wall {
+  background: var(--tile-wall);
+  border-radius: 10px;
+}
+
+.target::after {
+  content: '';
+  position: absolute; inset: 8px;
+  border-radius: 8px;
+  border: 2px dashed var(--tile-target-border);
+  background: var(--tile-target-bg);
+}
+
+.player {
+  background: var(--player-bg);
+  border-radius: 16px;
+  box-shadow: var(--player-shadow);
+  z-index: 3;
+  animation: playerPop 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+.player::before {
+  content: ''; position: absolute; inset: 0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+}
+
+.box {
+  background: var(--box-bg);
+  border-radius: 12px;
+  box-shadow: var(--box-shadow);
+  z-index: 2;
+  transition: transform 0.18s cubic-bezier(0.175,0.885,0.32,1.275),
+              background 0.3s ease, box-shadow 0.3s ease;
+}
+.box::before {
+  content: ''; position: absolute; inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 55%);
+}
+
+.box-on-target {
+  background: var(--box-done-bg) !important;
+  box-shadow: var(--box-done-shadow) !important;
+  transform: scale(0.92) !important;
+}
+.box-on-target::after {
+  content: '✓';
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.9);
+  font-size: 18px; font-weight: 600;
+  z-index: 5;
+}
+
+@keyframes playerPop {
+  from { transform: scale(0.9); }
+  to   { transform: scale(1); }
+}
+
+/* ───────────── Controls ───────────── */
+.controls-section { margin-top: 20px; }
+
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 8px;
+  width: 160px;
+  margin: 0 auto;
+}
+
+.dpad-btn {
+  aspect-ratio: 1;
+  border: none; border-radius: 14px; cursor: pointer;
+  background: var(--bg-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+  -webkit-user-select: none; user-select: none;
+  touch-action: manipulation;
+}
+
+.dpad-btn:active, .dpad-btn.pressed {
+  transform: scale(0.88);
+  background: var(--accent-indigo);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 2px 10px rgba(88,86,214,0.4);
+}
+
+.dpad-btn.center-empty { visibility: hidden; }
+
+/* ───────────── Action Buttons ───────────── */
+.action-bar {
+  display: flex; gap: 10px; margin-top: 14px;
+}
+.action-btn {
+  flex: 1; height: 44px; border: none; border-radius: 14px; cursor: pointer;
+  font-family: 'Noto Sans TC', system-ui, sans-serif;
+  font-size: 13px; font-weight: 500;
+  letter-spacing: 0.05em;
+  transition: all 0.18s ease;
+  touch-action: manipulation;
+  -webkit-user-select: none; user-select: none;
+}
+.btn-restart {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+.btn-restart:active { transform: scale(0.95); opacity: 0.7; }
+.btn-hint {
+  background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple));
+  color: white;
+  box-shadow: 0 4px 14px rgba(88,86,214,0.35);
+}
+.btn-hint:active { transform: scale(0.95); box-shadow: 0 2px 8px rgba(88,86,214,0.3); }
+
+/* ───────────── Win Overlay ───────────── */
+.win-overlay {
+  position: absolute; inset: 0; z-index: 100;
+  border-radius: 32px;
+  background: var(--bg-card);
+  backdrop-filter: blur(30px) saturate(2);
+  -webkit-backdrop-filter: blur(30px) saturate(2);
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center; gap: 16px;
+  animation: fadeIn 0.4s ease;
+}
+.win-overlay.show { display: flex; }
+
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+.win-emoji { font-size: 64px; animation: bounce 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes bounce { from { transform: scale(0); } to { transform: scale(1); } }
+.win-title { font-size: 26px; font-weight: 300; letter-spacing: 0.08em; color: var(--text-primary); }
+.win-sub { font-size: 13px; color: var(--text-secondary); font-weight: 400; }
+.win-btn {
+  margin-top: 8px; padding: 14px 40px;
+  border-radius: 16px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple));
+  color: white; font-size: 15px; font-weight: 500;
+  font-family: 'Noto Sans TC', system-ui;
+  box-shadow: 0 6px 20px rgba(88,86,214,0.4);
+  letter-spacing: 0.06em;
+  transition: all 0.18s;
+}
+.win-btn:active { transform: scale(0.96); }
+
+/* ───────────── Hint Bar ───────────── */
+.hint-bar {
+  display: none;
+  margin-top: 10px; padding: 10px 14px;
+  background: rgba(88,86,214,0.08);
+  border: 1px solid rgba(88,86,214,0.2);
+  border-radius: 12px;
+  font-size: 12px; color: var(--accent-indigo);
+  line-height: 1.5; text-align: center;
+}
+.hint-bar.show { display: block; }
+
+/* ───────────── Keyboard Hint ───────────── */
+.kbd-hint {
+  margin-top: 12px; text-align: center;
+  font-size: 11px; color: var(--text-tertiary);
+  letter-spacing: 0.04em;
+}
+kbd {
+  display: inline-block; padding: 1px 5px; margin: 0 1px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px; font-size: 10px;
+  color: var(--text-secondary);
+  box-shadow: 0 1px 0 var(--border-color);
+}
+
+/* ───────────── Legend ───────────── */
+.legend {
+  display: flex; justify-content: center; gap: 16px;
+  margin-top: 14px; flex-wrap: wrap;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; color: var(--text-tertiary); letter-spacing: 0.04em;
+}
+.legend-dot {
+  width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0;
+}
+.ld-player { background: var(--player-bg); }
+.ld-box    { background: linear-gradient(135deg, #f0b429, #d4870a); border-radius: 3px; }
+.ld-done   { background: linear-gradient(135deg, #30d158, #1a9e42); border-radius: 3px; }
+.ld-target { border: 2px dashed var(--tile-target-border); background: var(--tile-target-bg); }
+
+/* ───────────── Responsive ───────────── */
+@media (max-width: 360px) {
+  :root { --tile-size: 44px; --tile-radius: 10px; }
+  .game-container { padding: 22px 16px 20px; border-radius: 26px; }
+  .title { font-size: 19px; }
+}
+@media (min-width: 560px) {
+  :root { --tile-size: 56px; --tile-radius: 14px; }
+  .game-container { padding: 36px 32px 32px; }
+}
+
+/* ───────────── Selection Remove ───────────── */
+* { -webkit-user-select: none; user-select: none; }
+</style>
 </head>
 <body>
 
-<div class="app-wrapper">
-    <div class="header">
-        <h1>Cubic Mind</h1>
-        <div class="theme-toggle" onclick="toggleTheme()">🌓</div>
+<div class="backdrop">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<div class="game-container" id="gameContainer">
+  <!-- Win Overlay -->
+  <div class="win-overlay" id="winOverlay">
+    <div class="win-emoji">🎉</div>
+    <div class="win-title">STAGE CLEAR</div>
+    <div class="win-sub" id="winSub">共走了 0 步</div>
+    <button class="win-btn" onclick="restartGame()">再玩一次</button>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="title-group">
+      <div class="title">CUBIC <span>MIND</span></div>
+      <div class="subtitle">推箱子 · SOKOBAN</div>
+    </div>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" aria-label="切換模式">
+      <span class="theme-icon" id="themeIcon">🌙</span>
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-pill">
+      <div class="stat-label">關卡</div>
+      <div class="stat-value accent" id="levelNum">1</div>
+    </div>
+    <div class="stat-pill">
+      <div class="stat-label">步數</div>
+      <div class="stat-value" id="moveCount">0</div>
+    </div>
+    <div class="stat-pill">
+      <div class="stat-label">完成</div>
+      <div class="stat-value green" id="doneCount">0 / <span id="totalBoxes">0</span></div>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <div id="grid"></div>
+
+  <!-- Hint bar -->
+  <div class="hint-bar" id="hintBar">提示：嘗試先把下方箱子推到右邊的目標點</div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot ld-player"></div><span>玩家</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot ld-box"></div><span>箱子</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot ld-done"></div><span>已到位</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot ld-target"></div><span>目標</span>
+    </div>
+  </div>
+
+  <!-- D-Pad Controls -->
+  <div class="controls-section">
+    <div class="dpad">
+      <div></div>
+      <button class="dpad-btn" id="btnUp"    data-dir="up"    ontouchstart="handleDpadStart(event)" ontouchend="handleDpadEnd(event)" onmousedown="handleDpadStart(event)" onmouseup="handleDpadEnd(event)">▲</button>
+      <div></div>
+      <button class="dpad-btn" id="btnLeft"  data-dir="left"  ontouchstart="handleDpadStart(event)" ontouchend="handleDpadEnd(event)" onmousedown="handleDpadStart(event)" onmouseup="handleDpadEnd(event)">◀</button>
+      <div class="center-empty"></div>
+      <button class="dpad-btn" id="btnRight" data-dir="right" ontouchstart="handleDpadStart(event)" ontouchend="handleDpadEnd(event)" onmousedown="handleDpadStart(event)" onmouseup="handleDpadEnd(event)">▶</button>
+      <div></div>
+      <button class="dpad-btn" id="btnDown"  data-dir="down"  ontouchstart="handleDpadStart(event)" ontouchend="handleDpadEnd(event)" onmousedown="handleDpadStart(event)" onmouseup="handleDpadEnd(event)">▼</button>
+      <div></div>
     </div>
 
-    <div class="info-card">
-        <div class="stat-item">
-            <div class="stat-label">關卡</div>
-            <div class="stat-value" id="level-val">1</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-label">步數</div>
-            <div class="stat-value" id="move-val">0</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-label">最佳</div>
-            <div class="stat-value" id="best-val">-</div>
-        </div>
+    <!-- Action Buttons -->
+    <div class="action-bar">
+      <button class="action-btn btn-restart" onclick="restartGame()">↩ 重新開始</button>
+      <button class="action-btn btn-hint" onclick="toggleHint()">💡 提示</button>
     </div>
+  </div>
 
-    <div class="grid-container" id="game-grid"></div>
-
-    <div class="footer">
-        <div class="controls" id="mobile-ctrl">
-            <div class="ctrl-btn" style="grid-area: up" onclick="handleMove('ArrowUp')">▲</div>
-            <div class="ctrl-btn" style="grid-area: left" onclick="handleMove('ArrowLeft')">◀</div>
-            <div class="ctrl-btn" style="grid-area: down" onclick="handleMove('ArrowDown')">▼</div>
-            <div class="ctrl-btn" style="grid-area: right" onclick="handleMove('ArrowRight')">▶</div>
-        </div>
-        <div class="action-btns">
-            <button class="sub-btn" onclick="resetLevel()">重設</button>
-            <button class="sub-btn" onclick="nextLevel()">隨機生成</button>
-        </div>
-    </div>
+  <!-- Keyboard Hint -->
+  <div class="kbd-hint">桌面：使用 <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 方向鍵移動</div>
 </div>
 
 <script>
-    const GRID_SIZE = 10;
-    let moves = 0, level = 1, bestMoves = Infinity;
-    let gameState = [], levelTemplate = [];
-    let audioCtx = null;
+/* ─── Level Data ─── */
+const LEVELS = [
+  {
+    map: [
+      [1,1,1,1,1,1,1],
+      [1,0,0,0,2,0,1],
+      [1,0,4,0,0,0,1],
+      [1,0,3,2,4,0,1],
+      [1,1,1,1,1,1,1]
+    ],
+    hint: '先把下方箱子往右推到目標點，再處理上方的箱子。'
+  }
+];
 
-    // --- 主題切換 ---
-    function toggleTheme() {
-        const doc = document.documentElement;
-        const current = doc.getAttribute('data-theme');
-        doc.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
-        vibrate(10);
+// 0=floor, 1=wall, 2=target, 3=player, 4=box
+// 5=player on target, 6=box on target
+
+let currentLevel = 0;
+let baseMap = [];
+let gameState = [];
+let moves = 0;
+let audioCtx;
+
+/* ─── Audio ─── */
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playSound(type) {
+  try {
+    const ctx = getAudio();
+    if (ctx.state === 'suspended') ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    const now = ctx.currentTime;
+    if (type === 'move') {
+      osc.type = 'sine'; osc.frequency.setValueAtTime(180, now);
+      osc.frequency.exponentialRampToValueAtTime(60, now + 0.08);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.linearRampToValueAtTime(0, now + 0.08);
+    } else if (type === 'push') {
+      osc.type = 'triangle'; osc.frequency.setValueAtTime(280, now);
+      osc.frequency.linearRampToValueAtTime(180, now + 0.12);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.linearRampToValueAtTime(0, now + 0.15);
+    } else if (type === 'success') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.setValueAtTime(659.25, now + 0.1);
+      osc.frequency.setValueAtTime(783.99, now + 0.2);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.linearRampToValueAtTime(0, now + 0.4);
+    } else if (type === 'win') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523, now);
+      osc.frequency.setValueAtTime(659, now + 0.12);
+      osc.frequency.setValueAtTime(784, now + 0.24);
+      osc.frequency.setValueAtTime(1047, now + 0.36);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.linearRampToValueAtTime(0, now + 0.6);
     }
+    osc.start(); osc.stop(now + 0.7);
+  } catch(e) {}
+}
 
-    // --- 觸覺反饋 ---
-    function vibrate(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
+/* ─── Game Init ─── */
+function initGame(level = 0) {
+  currentLevel = level;
+  baseMap = LEVELS[level].map.map(row => [...row]);
+  gameState = LEVELS[level].map.map(row => [...row]);
+  moves = 0;
+  document.getElementById('winOverlay').classList.remove('show');
+  document.getElementById('hintBar').classList.remove('show');
+  document.getElementById('levelNum').textContent = level + 1;
+  countBoxes();
+  render();
+}
 
-    // --- 音效系統 ---
-    function playStepSound(type) {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        
-        const now = audioCtx.currentTime;
-        if (type === 'push') {
-            osc.frequency.setValueAtTime(150, now);
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-        } else {
-            osc.frequency.setValueAtTime(400, now);
-            gain.gain.setValueAtTime(0.05, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-        }
-        osc.start(); osc.stop(now + 0.1);
+function countBoxes() {
+  let boxes = 0, done = 0;
+  gameState.forEach((row, r) => row.forEach((cell, c) => {
+    if (cell === 4) { boxes++; if (baseMap[r][c] === 2) done++; }
+    if (cell === 6) { boxes++; done++; }
+  }));
+  document.getElementById('totalBoxes').textContent = boxes;
+  document.getElementById('doneCount').textContent = done + ' / ';
+  return { boxes, done };
+}
+
+/* ─── Render ─── */
+function render() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = `repeat(${gameState[0].length}, var(--tile-size))`;
+
+  gameState.forEach((row, r) => {
+    row.forEach((cell, c) => {
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      const base = baseMap[r][c];
+      if (cell === 1) tile.classList.add('wall');
+      if (base === 2) tile.classList.add('target');
+      if (cell === 3 || cell === 5) tile.classList.add('player');
+      if (cell === 4 || cell === 6) {
+        tile.classList.add('box');
+        if (cell === 6) tile.classList.add('box-on-target');
+      }
+      grid.appendChild(tile);
+    });
+  });
+
+  document.getElementById('moveCount').textContent = moves;
+  const { done } = countBoxes();
+  document.getElementById('doneCount').textContent = done + ' / ';
+
+  // Check win
+  const allDone = gameState.flat().every(c => c !== 4);
+  if (allDone && moves > 0) {
+    const boxes = gameState.flat().filter(c => c === 6).length;
+    if (boxes > 0) checkWin();
+  }
+}
+
+function checkWin() {
+  const boxes = LEVELS[currentLevel].map.flat().filter(c => c === 4).length;
+  const done  = gameState.flat().filter(c => c === 6).length;
+  if (done >= boxes) {
+    playSound('win');
+    document.getElementById('winSub').textContent = `共走了 ${moves} 步`;
+    document.getElementById('winOverlay').classList.add('show');
+  }
+}
+
+/* ─── Movement ─── */
+function movePlayer(dr, dc) {
+  let pr = -1, pc = -1;
+  gameState.forEach((row, r) => row.forEach((cell, c) => {
+    if (cell === 3 || cell === 5) { pr = r; pc = c; }
+  }));
+  if (pr < 0) return;
+
+  const nr = pr + dr, nc = pc + dc;
+  if (nr < 0 || nr >= gameState.length || nc < 0 || nc >= gameState[0].length) return;
+  const targetCell = gameState[nr][nc];
+  const leaving = baseMap[pr][pc] === 2 ? 2 : 0;
+
+  if (targetCell === 0 || targetCell === 2) {
+    gameState[pr][pc] = leaving;
+    gameState[nr][nc] = (baseMap[nr][nc] === 2) ? 5 : 3;
+    moves++;
+    playSound('move');
+    render();
+  } else if (targetCell === 4 || targetCell === 6) {
+    const nnr = nr + dr, nnc = nc + dc;
+    if (nnr < 0 || nnr >= gameState.length || nnc < 0 || nnc >= gameState[0].length) return;
+    const beyond = gameState[nnr][nnc];
+    if (beyond === 0 || beyond === 2) {
+      const isTarget = baseMap[nnr][nnc] === 2;
+      gameState[nnr][nnc] = isTarget ? 6 : 4;
+      gameState[nr][nc]   = (baseMap[nr][nc] === 2) ? 5 : 3;
+      gameState[pr][pc]   = leaving;
+      moves++;
+      playSound(isTarget ? 'success' : 'push');
+      render();
     }
+  }
+}
 
-    // --- 地圖生成器 (優化 10x10) ---
-    function initMap() {
-        moves = 0;
-        document.getElementById('move-val').innerText = moves;
-        let map = Array.from({length: GRID_SIZE}, () => Array(GRID_SIZE).fill(1));
-        
-        // 建立內部空間
-        for(let r=1; r<9; r++) for(let c=1; c<9; c++) map[r][c] = 0;
+/* ─── D-Pad Touch ─── */
+const dirMap = { up: [-1,0], down: [1,0], left: [0,-1], right: [0,1] };
+let dpadInterval = null;
+let dpadHolding = false;
 
-        // 隨機目標
-        let tr = 4, tc = 4; map[tr][tc] = 2;
-        let pr = 4, pc = 5, br = 4, bc = 4;
-
-        // 逆向打亂步數增加到 180 次
-        for(let i=0; i<180; i++) {
-            const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
-            const [dr, dc] = dirs[Math.floor(Math.random()*4)];
-            const nr = pr+dr, nc = pc+dc;
-            if(nr>0 && nr<9 && nc>0 && nc<9) {
-                if(nr===br && nc===bc) {
-                    const bnr = br+dr, bnc = bc+dc;
-                    if(bnr>0 && bnr<9 && bnc>0 && bnc<9) { br=bnr; bc=bnc; pr=nr; pc=nc; }
-                } else { pr=nr; pc=nc; }
-            }
-        }
-
-        levelTemplate = JSON.parse(JSON.stringify(map));
-        gameState = JSON.parse(JSON.stringify(map));
-        gameState[pr][pc] = 3; gameState[br][bc] = 4;
-        render();
+function handleDpadStart(e) {
+  e.preventDefault();
+  const dir = e.currentTarget.dataset.dir;
+  e.currentTarget.classList.add('pressed');
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  movePlayer(...dirMap[dir]);
+  dpadHolding = true;
+  dpadInterval = setTimeout(() => {
+    if (dpadHolding) {
+      dpadInterval = setInterval(() => {
+        if (dpadHolding) movePlayer(...dirMap[dir]);
+      }, 120);
     }
+  }, 350);
+}
+function handleDpadEnd(e) {
+  e.currentTarget.classList.remove('pressed');
+  dpadHolding = false;
+  clearTimeout(dpadInterval);
+  clearInterval(dpadInterval);
+}
 
-    function render() {
-        const grid = document.getElementById('game-grid');
-        grid.innerHTML = '';
-        gameState.forEach((row, r) => {
-            row.forEach((cell, c) => {
-                const el = document.createElement('div');
-                el.className = 'tile';
-                if(cell === 1) el.classList.add('wall');
-                if(levelTemplate[r][c] === 2) el.classList.add('target');
-                if(cell === 3) el.classList.add('player');
-                if(cell === 4) {
-                    el.classList.add('box');
-                    if(levelTemplate[r][c] === 2) el.classList.add('box-on-target');
-                }
-                grid.appendChild(el);
-            });
-        });
-    }
+/* ─── Keyboard ─── */
+const keyMap = {
+  ArrowUp: [-1,0], ArrowDown: [1,0], ArrowLeft: [0,-1], ArrowRight: [0,1],
+  w: [-1,0], s: [1,0], a: [0,-1], d: [0,1],
+  W: [-1,0], S: [1,0], A: [0,-1], D: [0,1],
+};
+window.addEventListener('keydown', e => {
+  if (keyMap[e.key]) {
+    e.preventDefault();
+    movePlayer(...keyMap[e.key]);
+  }
+});
 
-    function handleMove(key) {
-        let dr=0, dc=0;
-        if(key === 'ArrowUp') dr=-1;
-        if(key === 'ArrowDown') dr=1;
-        if(key === 'ArrowLeft') dc=-1;
-        if(key === 'ArrowRight') dc=1;
+/* ─── Swipe ─── */
+let touchStart = null;
+document.getElementById('grid').addEventListener('touchstart', e => {
+  touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+}, { passive: true });
+document.getElementById('grid').addEventListener('touchend', e => {
+  if (!touchStart) return;
+  const dx = e.changedTouches[0].clientX - touchStart.x;
+  const dy = e.changedTouches[0].clientY - touchStart.y;
+  const adx = Math.abs(dx), ady = Math.abs(dy);
+  if (Math.max(adx, ady) > 30) {
+    if (adx > ady) movePlayer(0, dx > 0 ? 1 : -1);
+    else movePlayer(dy > 0 ? 1 : -1, 0);
+  }
+  touchStart = null;
+}, { passive: true });
 
-        let pr, pc;
-        gameState.forEach((row, r) => row.forEach((cell, c) => { if(cell===3) {pr=r; pc=c;} }));
-        const nr = pr+dr, nc = pc+dc;
+/* ─── Theme ─── */
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.dataset.theme === 'dark';
+  html.dataset.theme = isDark ? 'light' : 'dark';
+  document.getElementById('themeIcon').textContent = isDark ? '🌙' : '☀️';
+  // Prefer system -> can also auto-detect:
+  localStorage.setItem('theme', html.dataset.theme);
+}
 
-        if(gameState[nr][nc] === 1) return;
+// Auto detect system theme
+(function() {
+  const saved = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = saved || (prefersDark ? 'dark' : 'light');
+  document.documentElement.dataset.theme = theme;
+  document.getElementById('themeIcon').textContent = theme === 'dark' ? '☀️' : '🌙';
+})();
 
-        if(gameState[nr][nc] === 0 || gameState[nr][nc] === 2) {
-            gameState[pr][pc] = levelTemplate[pr][pc] === 2 ? 2 : 0;
-            gameState[nr][nc] = 3;
-            moves++; playStepSound('move');
-        } else if(gameState[nr][nc] === 4) {
-            const nnr = nr+dr, nnc = nc+dc;
-            if(gameState[nnr][nnc] === 0 || gameState[nnr][nnc] === 2) {
-                gameState[nnr][nnc] = 4;
-                gameState[nr][nc] = 3;
-                gameState[pr][pc] = levelTemplate[pr][pc] === 2 ? 2 : 0;
-                moves++; playStepSound('push');
-            }
-        }
-        vibrate(5);
-        document.getElementById('move-val').innerText = moves;
-        render();
-        checkWin();
-    }
+/* ─── Helpers ─── */
+function restartGame() { initGame(currentLevel); }
+function toggleHint() {
+  const bar = document.getElementById('hintBar');
+  bar.textContent = LEVELS[currentLevel].hint;
+  bar.classList.toggle('show');
+}
 
-    function checkWin() {
-        let win = true;
-        levelTemplate.forEach((row, r) => row.forEach((cell, c) => {
-            if(cell === 2 && gameState[r][c] !== 4) win = false;
-        }));
-        if(win && moves > 0) {
-            setTimeout(() => {
-                alert(`太棒了！步數：${moves}`);
-                if(moves < bestMoves) {
-                    bestMoves = moves;
-                    document.getElementById('best-val').innerText = bestMoves;
-                }
-                level++;
-                document.getElementById('level-val').innerText = level;
-                initMap();
-            }, 300);
-        }
-    }
-
-    function resetLevel() { gameState = JSON.parse(JSON.stringify(levelTemplate)); moves=0; render(); }
-    function nextLevel() { initMap(); }
-
-    window.addEventListener('keydown', (e) => handleMove(e.key));
-    window.onload = initMap;
+/* ─── Start ─── */
+initGame(0);
 </script>
-
 </body>
 </html>
