@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Cubic Mind — 推箱子 | 多样实体系统</title>
+<title>Cubic Mind — 推箱子 | 多样实体·横竖自适应</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@200;300;400&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-/* 完整样式（与之前相同） */
+/* ========== CSS Variables ========== */
 :root {
   --bg-primary: #f5f5f7;
   --bg-secondary: #ffffff;
@@ -128,6 +128,7 @@ body {
   to { transform: translate(20px, 15px); }
 }
 
+/* 顶部固定标题栏（移动端也保持） */
 .sticky-header {
   position: sticky;
   top: 0;
@@ -155,7 +156,7 @@ body {
 .title { font-size: 20px; font-weight: 300; letter-spacing: 0.1em; color: var(--text-primary); line-height: 1.2; }
 .title span { color: var(--accent-indigo); font-weight: 400; }
 .subtitle { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-tertiary); margin-top: 2px; }
-.theme-btn {
+.theme-btn, .music-btn {
   width: 38px; height: 38px; border-radius: 50%;
   border: 1px solid var(--border-color);
   cursor: pointer;
@@ -167,8 +168,9 @@ body {
   transition: all 0.15s ease;
   color: var(--text-secondary);
 }
-.theme-btn:active { transform: scale(0.92); background: var(--accent-indigo); color: white; }
+.theme-btn:active, .music-btn:active { transform: scale(0.92); background: var(--accent-indigo); color: white; }
 
+/* 主容器：移动端竖版，PC端横版 */
 .game-container {
   position: relative;
   z-index: 1;
@@ -184,6 +186,8 @@ body {
   box-shadow: var(--shadow-lg);
   transition: background-color 0.1s;
 }
+
+/* PC横版布局 */
 @media (min-width: 860px) {
   :root {
     --tile-size: 58px;
@@ -205,19 +209,57 @@ body {
     display: flex;
     justify-content: center;
   }
-  .game-stats-row { grid-column: 2 / 3; grid-row: 1; margin: 0 0 16px 0; }
-  .game-legend { grid-column: 2 / 3; grid-row: 2; margin: 12px 0 8px; }
-  .game-controls { grid-column: 2 / 3; grid-row: 3; margin-top: 12px; }
-  .game-hint { grid-column: 2 / 3; grid-row: 4; margin-top: 12px; }
-  .game-kbd { grid-column: 2 / 3; grid-row: 5; margin-top: 16px; text-align: center; }
-  .stats-row { flex-direction: column; align-items: stretch; gap: 10px; }
-  .stats-bar { width: 100%; }
-  .level-nav { justify-content: center; margin-top: 4px; }
-  .dpad { width: 180px; }
-  .action-bar { gap: 10px; }
-  .legend { justify-content: flex-start; flex-wrap: wrap; }
+  .game-stats-row {
+    grid-column: 2 / 3;
+    grid-row: 1;
+    margin: 0 0 16px 0;
+  }
+  .game-legend {
+    grid-column: 2 / 3;
+    grid-row: 2;
+    margin: 12px 0 8px;
+  }
+  .game-controls {
+    grid-column: 2 / 3;
+    grid-row: 3;
+    margin-top: 12px;
+  }
+  .game-hint {
+    grid-column: 2 / 3;
+    grid-row: 4;
+    margin-top: 12px;
+  }
+  .game-kbd {
+    grid-column: 2 / 3;
+    grid-row: 5;
+    margin-top: 16px;
+    text-align: center;
+  }
+  .stats-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .stats-bar {
+    width: 100%;
+  }
+  .level-nav {
+    justify-content: center;
+    margin-top: 4px;
+  }
+  .dpad {
+    width: 180px;
+  }
+  .action-bar {
+    gap: 10px;
+  }
+  .legend {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
 }
 
+/* 炸弹条、震动、无解闪烁等样式省略（与之前相同） */
 .bomb-progress-container {
   width: 100%;
   height: 6px;
@@ -631,8 +673,11 @@ kbd {
 
 <div class="sticky-header">
   <div class="header">
-    <div class="title-group"><div class="title">CUBIC <span>MIND</span></div><div class="subtitle">多样实体·推箱子</div></div>
-    <button class="theme-btn" id="themeBtn"><span id="themeIcon">🌙</span></button>
+    <div class="title-group"><div class="title">CUBIC <span>MIND</span></div><div class="subtitle">多样实体·横竖自适应</div></div>
+    <div style="display: flex; gap: 8px;">
+      <button class="music-btn" id="musicBtn" style="background: var(--bg-glass);">🎵</button>
+      <button class="theme-btn" id="themeBtn"><span id="themeIcon">🌙</span></button>
+    </div>
   </div>
 </div>
 
@@ -727,7 +772,7 @@ const LEVELS = [
     directionalDirs: [],
     portals: []
   },
-  { // 关卡3 - 红色定向箱子（修复版，可解）
+  { // 关卡3 - 红色定向箱子
     map: [
       [1,1,1,1,1,1,1],
       [1,0,0,0,0,0,1],
@@ -741,16 +786,30 @@ const LEVELS = [
     directionalDirs: [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,'left',0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]],
     portals: []
   },
-  { // 关卡4 - 传送门教学（普通箱子传送）
-    map: [[1,1,1,1,1,1,1],[1,2,0,0,0,0,1],[1,0,4,0,11,0,1],[1,0,3,0,0,0,1],[1,0,12,0,0,0,1],[1,1,1,1,1,1,1]],
-    hint: '将箱子推入紫色传送门🌀，它会从出口⭕出现。',
+  { // 关卡4 - 传送门教学
+    map: [
+      [1,1,1,1,1,1,1],
+      [1,2,0,0,0,0,1],
+      [1,0,4,0,11,0,1],
+      [1,0,3,0,0,0,1],
+      [1,0,12,0,0,0,1],
+      [1,1,1,1,1,1,1]
+    ],
+    hint: '将箱子向右推入紫色传送门🌀，它会从出口⭕出现，然后向左推到目标点。',
     timerStart: 30,
     staminaPowers: [],
     directionalDirs: [],
     portals: [[2,4,4,2]]
   },
   { // 关卡5 - 综合挑战
-    map: [[1,1,1,1,1,1,1,1],[1,2,0,0,0,0,0,1],[1,0,7,0,9,0,0,1],[1,0,0,3,11,0,0,1],[1,0,0,0,0,12,2,1],[1,1,1,1,1,1,1,1]],
+    map: [
+      [1,1,1,1,1,1,1,1],
+      [1,2,0,0,0,0,0,1],
+      [1,0,7,0,9,0,0,1],
+      [1,0,0,3,11,0,0,1],
+      [1,0,0,0,0,12,2,1],
+      [1,1,1,1,1,1,1,1]
+    ],
     hint: '黄色箱子(3次)和红色箱子(→)，结合传送门，完成两个目标。',
     timerStart: 25,
     staminaPowers: [[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,3,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]],
@@ -769,8 +828,122 @@ let audioCtx = null;
 let bombTimerInterval = null, bombTimerSeconds = 0, bombTotalSeconds = 0, highFreqInterval = null;
 let dpadTimer = null, dpadIntervalId = null, currentDirKey = null;
 let currentArrow = null;
+let musicEnabled = false;
+let musicOsc = null, musicGain = null;
+let musicInterval = null;
 
-// ---------- 辅助函数 ----------
+// ---------- 特效增强 ----------
+function addParticleBurst(x, y, count = 12, color = '#ffaa44') {
+  const container = document.getElementById('grid');
+  if(!container) return;
+  const rect = container.getBoundingClientRect();
+  const tileSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--tile-size'));
+  const startX = rect.left + x * tileSize + tileSize/2;
+  const startY = rect.top + y * tileSize + tileSize/2;
+  for(let i=0; i<count; i++) {
+    const particle = document.createElement('div');
+    particle.style.position = 'fixed';
+    particle.style.width = '4px';
+    particle.style.height = '4px';
+    particle.style.backgroundColor = color;
+    particle.style.borderRadius = '50%';
+    particle.style.pointerEvents = 'none';
+    particle.style.zIndex = '300';
+    particle.style.left = startX + 'px';
+    particle.style.top = startY + 'px';
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 50 + 20;
+    const vx = Math.cos(angle) * speed;
+    const vy = Math.sin(angle) * speed;
+    let life = 100;
+    const animate = () => {
+      life--;
+      if(life <= 0) { particle.remove(); return; }
+      const currentLeft = parseFloat(particle.style.left);
+      const currentTop = parseFloat(particle.style.top);
+      particle.style.left = (currentLeft + vx/60) + 'px';
+      particle.style.top = (currentTop + vy/60) + 'px';
+      particle.style.opacity = life/100;
+      requestAnimationFrame(animate);
+    };
+    document.body.appendChild(particle);
+    animate();
+  }
+}
+
+function addTrailEffect(row, col, dr, dc) {
+  const container = document.getElementById('grid');
+  const tileSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--tile-size'));
+  const rect = container.getBoundingClientRect();
+  const startX = rect.left + col * tileSize + tileSize/2;
+  const startY = rect.top + row * tileSize + tileSize/2;
+  const endX = startX + dr * tileSize;
+  const endY = startY + dc * tileSize;
+  const steps = 8;
+  for(let i=0; i<=steps; i++) {
+    const t = i/steps;
+    const x = startX + (endX - startX) * t;
+    const y = startY + (endY - startY) * t;
+    const dot = document.createElement('div');
+    dot.style.position = 'fixed';
+    dot.style.width = '3px';
+    dot.style.height = '3px';
+    dot.style.backgroundColor = '#ffaa66';
+    dot.style.borderRadius = '50%';
+    dot.style.pointerEvents = 'none';
+    dot.style.zIndex = '300';
+    dot.style.left = x + 'px';
+    dot.style.top = y + 'px';
+    dot.style.opacity = '1';
+    document.body.appendChild(dot);
+    setTimeout(() => { if(dot) dot.remove(); }, 200);
+  }
+}
+
+function addPortalEffect(row, col) {
+  addParticleBurst(row, col, 20, '#af52de');
+  const tile = getTile(row, col);
+  if(tile) {
+    tile.style.transform = 'scale(1.2)';
+    setTimeout(() => { if(tile) tile.style.transform = ''; }, 200);
+  }
+}
+
+function addBoxExplosionEffect(row, col) {
+  addParticleBurst(row, col, 30, '#ff3b30');
+}
+
+// ---------- 背景音乐 ----------
+function startMusic() {
+  if(musicEnabled || !audioCtx) return;
+  musicEnabled = true;
+  const ctx = audioCtx;
+  musicOsc = ctx.createOscillator();
+  musicGain = ctx.createGain();
+  musicOsc.type = 'sine';
+  musicOsc.frequency.value = 440;
+  musicGain.gain.value = 0.05;
+  musicOsc.connect(musicGain);
+  musicGain.connect(ctx.destination);
+  musicOsc.start();
+  let noteIndex = 0;
+  const notes = [440, 494, 523, 587, 659, 523, 440];
+  musicInterval = setInterval(() => {
+    if(!musicEnabled || !musicOsc) { clearInterval(musicInterval); return; }
+    musicOsc.frequency.setValueAtTime(notes[noteIndex % notes.length], ctx.currentTime);
+    noteIndex++;
+    if(noteIndex >= notes.length) noteIndex = 0;
+  }, 500);
+}
+function stopMusic() {
+  if(!musicEnabled) return;
+  musicEnabled = false;
+  if(musicOsc) { musicOsc.stop(); musicOsc.disconnect(); musicOsc = null; }
+  if(musicGain) musicGain.disconnect();
+  if(musicInterval) clearInterval(musicInterval);
+}
+
+// ---------- 音频 ----------
 function getAudio(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
 function playSound(type){
   if(!gameActive && type!=='win' && type!=='reset' && type!=='explosion' && type!=='tick') return;
@@ -798,9 +971,14 @@ function playSound(type){
       osc.type='sine'; osc.frequency.setValueAtTime(1320,now); osc.frequency.exponentialRampToValueAtTime(880,now+0.03);
       gain.gain.setValueAtTime(0.04,now); gain.gain.linearRampToValueAtTime(0,now+0.07);
     }
+    else if(type==='portal'){
+      osc.type='sine'; osc.frequency.setValueAtTime(880,now); osc.frequency.exponentialRampToValueAtTime(440,now+0.1);
+      gain.gain.setValueAtTime(0.1,now); gain.gain.linearRampToValueAtTime(0,now+0.2);
+    }
     osc.start(); osc.stop(now+0.6);
   }catch(e){}
 }
+
 function addRippleEffect(tile) { if(!tile)return; const d=document.createElement('div'); d.className='ripple-effect'; tile.style.position='relative'; tile.appendChild(d); setTimeout(()=>d.remove(),400); }
 function addFlashEffect(tile) { if(!tile)return; const d=document.createElement('div'); d.className='flash-effect'; tile.style.position='relative'; tile.appendChild(d); setTimeout(()=>d.remove(),200); }
 function triggerConfetti() {
@@ -829,6 +1007,7 @@ function applyPortal(row, col) {
       const targetCell = gameState[exitRow][exitCol];
       if(targetCell === 0 || targetCell === 2) {
         playSound('portal');
+        addPortalEffect(row, col);
         const entryTile = getTile(row, col);
         if(entryTile) addFlashEffect(entryTile);
         const movingValue = gameState[row][col];
@@ -863,6 +1042,7 @@ function applyPortal(row, col) {
         }
         const exitTile = getTile(exitRow, exitCol);
         if(exitTile) addRippleEffect(exitTile);
+        addPortalEffect(exitRow, exitCol);
         return true;
       }
     }
@@ -1091,6 +1271,7 @@ function tryMove(dr, dc) {
     gameState[nr][nc] = (baseMap[nr][nc] === 2) ? 5 : 3;
     moves++;
     playSound('move');
+    addTrailEffect(pr, pc, dr, dc);
     if(baseMap[nr][nc] === 11 && applyPortal(nr, nc)) {}
     const newTile = getTile(nr,nc); if(newTile) addRippleEffect(newTile);
     updateStatsAndRender();
@@ -1133,6 +1314,7 @@ function tryMove(dr, dc) {
             tile.style.position = 'relative';
             tile.appendChild(explosion);
             setTimeout(() => explosion.remove(), 500);
+            addBoxExplosionEffect(nr, nc);
           }
           playSound('explosion');
         }
@@ -1152,6 +1334,7 @@ function tryMove(dr, dc) {
       if(isDirectional) directionalDir[nr][nc] = null;
       moves++;
       playSound(isStamina ? (shouldDestroy ? 'explosion' : 'push') : (isDirectional ? 'push' : (isTargetSpot ? 'success' : 'push')));
+      addTrailEffect(pr, pc, dr, dc);
       if(baseMap[nnr][nnc] === 11 && applyPortal(nnr, nnc)) {}
       const boxTile = getTile(nr,nc); if(boxTile) addRippleEffect(boxTile);
       const newPosTile = getTile(nnr,nnc); if(newPosTile) addFlashEffect(newPosTile);
@@ -1236,6 +1419,7 @@ function showArrowHint() {
   setTimeout(() => bar.classList.remove('show'), 3000);
 }
 
+// 关卡切换
 function changeLevel(delta) {
   if(winTriggered) document.getElementById('winOverlay').classList.remove('show');
   stopBombTimer();
@@ -1303,7 +1487,22 @@ function initTheme() {
   document.getElementById('themeIcon').textContent = theme === 'dark' ? '☀️' : '🌙';
 }
 
+function toggleMusic() {
+  const btn = document.getElementById('musicBtn');
+  if(musicEnabled) {
+    stopMusic();
+    btn.style.opacity = '0.5';
+    btn.textContent = '🔇';
+  } else {
+    if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    startMusic();
+    btn.style.opacity = '1';
+    btn.textContent = '🎵';
+  }
+}
+
 document.getElementById('themeBtn').addEventListener('click', toggleTheme);
+document.getElementById('musicBtn').addEventListener('click', toggleMusic);
 document.getElementById('restartBtn').addEventListener('click', restartGame);
 document.getElementById('hintBtn').addEventListener('click', toggleHint);
 document.getElementById('prevLevelBtn').addEventListener('click', prevLevelAction);
