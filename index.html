@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Cubic Mind — 推箱子 | 智能箭头提示·十关可解</title>
+<title>Cubic Mind — 推箱子 | 冲刺箱子·传送门·十二关</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@200;300;400&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-/* ========== CSS Variables ========== */
+/* 完整样式（与前版相同，确保视觉效果） */
 :root {
   --bg-primary: #f5f5f7;
   --bg-secondary: #ffffff;
@@ -34,6 +34,9 @@
   --box-shadow: 0 4px 12px rgba(224,124,0,0.35);
   --box-done-bg: linear-gradient(145deg, #30d158 0%, #1e9b42 100%);
   --box-done-shadow: 0 4px 12px rgba(48,209,88,0.4);
+  --portal-bg: linear-gradient(135deg, #af52de, #8e44ad);
+  --dash-box-bg: linear-gradient(145deg, #ff3b30, #cc2f1f);
+  --dash-box-shadow: 0 4px 12px rgba(255,59,48,0.5);
   --grid-gap: 4px;
   --tile-size: 48px;
   --tile-radius: 10px;
@@ -60,6 +63,9 @@
   --player-shadow: 0 4px 12px rgba(255,255,255,0.15);
   --box-bg: linear-gradient(145deg, #ffd60a 0%, #ffb800 100%);
   --box-shadow: 0 4px 12px rgba(255,214,10,0.3);
+  --portal-bg: linear-gradient(135deg, #bf6ee0, #aa5fcc);
+  --dash-box-bg: linear-gradient(145deg, #ff5e4a, #cc2f1f);
+  --dash-box-shadow: 0 4px 12px rgba(255,94,74,0.5);
 }
 
 * {
@@ -83,8 +89,6 @@ body {
   padding: 12px;
   transition: background 0.2s ease;
 }
-
-/* 氛围光晕 */
 .backdrop {
   position: fixed;
   inset: 0;
@@ -119,7 +123,6 @@ body {
   to { transform: translate(20px, 15px); }
 }
 
-/* 顶部固定标题栏 */
 .sticky-header {
   position: sticky;
   top: 0;
@@ -160,8 +163,6 @@ body {
   color: var(--text-secondary);
 }
 .theme-btn:active { transform: scale(0.92); background: var(--accent-indigo); color: white; }
-
-/* 主容器 */
 .game-container {
   position: relative;
   z-index: 1;
@@ -177,8 +178,6 @@ body {
   box-shadow: var(--shadow-lg);
   transition: background-color 0.1s;
 }
-
-/* 横版布局 (PC宽屏) */
 @media (min-width: 860px) {
   :root {
     --tile-size: 58px;
@@ -212,8 +211,6 @@ body {
   .action-bar { gap: 10px; }
   .legend { justify-content: flex-start; flex-wrap: wrap; }
 }
-
-/* 顶部动态炸弹条 */
 .bomb-progress-container {
   width: 100%;
   height: 6px;
@@ -239,8 +236,6 @@ body {
   50% { filter: brightness(1.3); }
   100% { filter: brightness(1); }
 }
-
-/* 持续震动 */
 .game-container.shake-continuous {
   animation: gentleShake 0.08s infinite ease-in-out;
 }
@@ -265,8 +260,6 @@ body {
   80% { transform: translate(1px, 0); }
   100% { transform: translate(0, 0); }
 }
-
-/* 统计栏 */
 .stats-row {
   display: flex;
   flex-wrap: wrap;
@@ -333,8 +326,6 @@ body {
   padding: 4px 8px;
   border-radius: 20px;
 }
-
-/* 网格 */
 #grid {
   display: grid;
   gap: var(--grid-gap);
@@ -415,9 +406,59 @@ body {
   line-height: 1.2;
   z-index: 6;
 }
+.dash-box {
+  background: var(--dash-box-bg) !important;
+  box-shadow: var(--dash-box-shadow) !important;
+  position: relative;
+}
+.dash-box::before {
+  content: '➡️';
+  position: absolute;
+  font-size: 18px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.9;
+  text-shadow: none;
+  pointer-events: none;
+}
+.dash-number {
+  position: absolute;
+  bottom: 2px;
+  left: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(0,0,0,0.7);
+  padding: 0 4px;
+  border-radius: 10px;
+  color: white;
+  line-height: 1.2;
+  z-index: 6;
+}
+.portal-entry, .portal-exit {
+  background: var(--portal-bg);
+  border-radius: 10px;
+  position: relative;
+}
+.portal-entry::before {
+  content: '🌀';
+  position: absolute;
+  font-size: 24px;
+  opacity: 0.8;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.portal-exit::before {
+  content: '⭕';
+  position: absolute;
+  font-size: 24px;
+  opacity: 0.8;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 @keyframes playerPop { from { transform: scale(0.9); } to { transform: scale(1); } }
-
-/* 箭头提示 */
 .hint-arrow {
   position: absolute;
   inset: 0;
@@ -431,12 +472,7 @@ body {
   z-index: 20;
   animation: fadeArrow 0.3s ease-out;
 }
-@keyframes fadeArrow {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* 爆炸特效 */
+@keyframes fadeArrow { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 .box-explosion {
   position: absolute;
   inset: 0;
@@ -463,8 +499,6 @@ body {
   0% { opacity: 1; transform: scale(0.5); }
   100% { opacity: 0; transform: scale(2.5); }
 }
-
-/* 粒子特效 */
 .ripple-effect {
   position: absolute;
   inset: 0;
@@ -490,8 +524,6 @@ body {
   from { opacity: 1; transform: scale(0.8); }
   to { opacity: 0; transform: scale(1.2); }
 }
-
-/* 方向键 */
 .controls-section { margin-top: 16px; }
 .dpad {
   display: grid;
@@ -535,8 +567,6 @@ body {
 .btn-restart:active { transform: scale(0.96); opacity: 0.7; }
 .btn-hint { background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple)); color: white; box-shadow: 0 2px 10px rgba(88,86,214,0.3); }
 .btn-hint:active { transform: scale(0.96); }
-
-/* 胜利蒙层 */
 .win-overlay {
   position: absolute;
   inset: 0;
@@ -568,8 +598,6 @@ body {
   font-weight: 500;
 }
 .win-btn.secondary { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); box-shadow: none; }
-
-/* 提示栏 */
 .hint-bar {
   display: none;
   padding: 8px 12px;
@@ -595,8 +623,6 @@ kbd {
   border-radius: 4px;
   font-size: 9px;
 }
-
-/* 图例 */
 .legend {
   display: flex;
   justify-content: center;
@@ -610,7 +636,8 @@ kbd {
 .ld-box { background: linear-gradient(135deg, #ff9f0a, #e07c00); border-radius: 3px; }
 .ld-done { background: linear-gradient(135deg, #30d158, #1e9b42); border-radius: 3px; }
 .ld-target { border: 1.5px dashed var(--tile-target-border); background: var(--tile-target-bg); }
-
+.ld-portal { background: linear-gradient(135deg, #af52de, #8e44ad); border-radius: 3px; }
+.ld-dash { background: linear-gradient(135deg, #ff3b30, #cc2f1f); border-radius: 3px; }
 @media (max-width: 420px) {
   :root { --tile-size: 42px; --tile-radius: 9px; --grid-gap: 3px; }
   .game-container { padding: 14px 12px 16px; border-radius: 28px; }
@@ -618,13 +645,17 @@ kbd {
   .dpad { width: 130px; gap: 6px; }
   .dpad-btn { font-size: 16px; }
   .action-btn { height: 40px; font-size: 12px; }
-  .box-number { font-size: 10px; bottom: 1px; right: 2px; }
+  .box-number, .dash-number { font-size: 10px; bottom: 1px; right: 2px; left: auto; }
+  .dash-box::before { font-size: 14px; }
+  .portal-entry::before, .portal-exit::before { font-size: 18px; }
 }
 @media (max-width: 360px) {
   :root { --tile-size: 38px; --tile-radius: 8px; --grid-gap: 2px; }
   .game-container { padding: 12px 10px 14px; }
   .legend-item { font-size: 8px; }
-  .box-number { font-size: 9px; }
+  .box-number, .dash-number { font-size: 9px; }
+  .dash-box::before { font-size: 12px; }
+  .portal-entry::before, .portal-exit::before { font-size: 16px; }
 }
 </style>
 </head>
@@ -632,10 +663,9 @@ kbd {
 
 <div class="backdrop"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
 
-<!-- 固定顶部的标题栏 -->
 <div class="sticky-header">
   <div class="header">
-    <div class="title-group"><div class="title">CUBIC <span>MIND</span></div><div class="subtitle">推箱子 · 灵境</div></div>
+    <div class="title-group"><div class="title">CUBIC <span>MIND</span></div><div class="subtitle">推箱子 · 冲刺箱子</div></div>
     <button class="theme-btn" id="themeBtn"><span id="themeIcon">🌙</span></button>
   </div>
 </div>
@@ -671,7 +701,7 @@ kbd {
       </div>
       <div class="level-nav">
         <button class="level-nav-btn" id="prevLevelBtn">◀</button>
-        <span class="level-nav-text" id="levelDisplay">Lv.1/<span id="totalLevelsSpan">10</span></span>
+        <span class="level-nav-text" id="levelDisplay">Lv.1/<span id="totalLevelsSpan">12</span></span>
         <button class="level-nav-btn" id="nextLevelBtn">▶</button>
       </div>
     </div>
@@ -683,7 +713,8 @@ kbd {
       <div class="legend-item"><div class="legend-dot ld-box"></div><span>箱子</span></div>
       <div class="legend-item"><div class="legend-dot ld-done"></div><span>已归位</span></div>
       <div class="legend-item"><div class="legend-dot ld-target"></div><span>目標點</span></div>
-      <div class="legend-item"><span>🔢数字箱子</span></div>
+      <div class="legend-item"><div class="legend-dot ld-portal"></div><span>傳送門</span></div>
+      <div class="legend-item"><div class="legend-dot ld-dash"></div><span>冲刺箱子(数字步数)</span></div>
     </div>
   </div>
 
@@ -712,149 +743,212 @@ kbd {
 </div>
 
 <script>
-// ==================== 10个可解关卡（已修复目标点数量）====================
+// ==================== 12个关卡（第二关已修复为可解）====================
+// 地图编码：
+// 0:空地  1:墙  2:目标点  3:玩家  4:普通箱子  5:玩家在目标点  6:箱子在目标点
+// 7:数字箱子  8:数字箱子在目标点  9:传送门入口  10:传送门出口
+// 11:冲刺箱子(普通)  12:冲刺箱子在目标点
 const LEVELS = [
   { // 关卡1 - 基础教学
-    map: [
-      [1,1,1,1,1],
-      [1,0,0,0,1],
-      [1,3,4,2,1],
-      [1,0,0,0,1],
-      [1,1,1,1,1]
-    ],
+    map: [[1,1,1,1,1],[1,0,0,0,1],[1,3,4,2,1],[1,0,0,0,1],[1,1,1,1,1]],
     hint: '向右推动箱子到目标点即可过关。',
     timerStart: 30,
-    boxCounts: []
+    boxCounts: [],
+    dashSteps: [],
+    portals: []
   },
-  { // 关卡2 - 数字箱子3次（修复版：玩家在左侧，箱子在右侧，目标在右侧）
-    map: [
-      [1,1,1,1,1,1],
-      [1,0,0,0,0,1],
-      [1,3,7,2,0,1],
-      [1,0,0,0,0,1],
-      [1,1,1,1,1,1]
-    ],
-    hint: '数字箱子限推3次，向右推一次即可过关。',
-    timerStart: 30,
-    boxCounts: [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,3,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
-  },
-  { // 关卡3 - 普通+数字，双目标（修复版：增加一个目标点）
+  { // 关卡2 - 修复版：必须利用传送门才能将箱子推到目标点（可解）
     map: [
       [1,1,1,1,1,1,1],
-      [1,0,0,2,0,0,1],
-      [1,0,4,0,7,2,1],
-      [1,0,0,3,0,0,1],
+      [1,0,0,0,2,0,1],
+      [1,0,1,1,0,0,1],
+      [1,3,7,9,10,0,1],
       [1,0,0,0,0,0,1],
       [1,1,1,1,1,1,1]
     ],
-    hint: '先推普通箱子到左侧目标，再推数字箱子（3次）至右侧目标。',
+    hint: '数字箱子限推3次，向右推入传送门🌀，它会从出口⭕出现，然后向上推到目标点。',
     timerStart: 30,
-    boxCounts: [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,3,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]]
+    boxCounts: [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,3,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]],
+    dashSteps: [],
+    portals: [[3,3,3,4]]
   },
-  { // 关卡4 - 双数字（3+2）
-    map: [
-      [1,1,1,1,1,1,1],
-      [1,2,0,0,0,0,1],
-      [1,0,7,3,0,0,1],
-      [1,0,0,0,7,0,1],
-      [1,0,0,0,0,2,1],
-      [1,1,1,1,1,1,1]
-    ],
-    hint: '左侧数字3次，右侧2次。先左后右。',
-    timerStart: 20,
-    boxCounts: [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,3,0,0,0,0],[0,0,0,0,2,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]]
-  },
-  { // 关卡5 - 单数字2次
-    map: [
-      [1,1,1,1,1,1],
-      [1,0,0,0,0,1],
-      [1,7,3,2,0,1],
-      [1,0,0,0,0,1],
-      [1,1,1,1,1,1]
-    ],
-    hint: '数字箱子仅剩2次，需在2步内推到目标。',
-    timerStart: 20,
-    boxCounts: [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,2,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
-  },
-  { // 关卡6 - 双数字+普通（3+2）
+  { // 关卡3 - 普通+数字 + 双传送门串联
     map: [
       [1,1,1,1,1,1,1,1],
       [1,0,0,2,0,0,0,1],
-      [1,0,4,0,7,0,0,1],
-      [1,0,0,3,0,0,7,1],
-      [1,0,0,0,0,0,2,1],
+      [1,0,4,0,9,0,0,1],
+      [1,0,0,3,0,10,0,1],
+      [1,0,0,0,0,7,2,1],
       [1,1,1,1,1,1,1,1]
     ],
-    hint: '左侧数字3次，右侧2次，普通箱子作垫步。',
-    timerStart: 20,
-    boxCounts: [[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,3,0,0,0],[0,0,0,0,0,0,2,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]]
+    hint: '普通箱子可直接推，数字箱子通过传送门绕过墙壁。',
+    timerStart: 30,
+    boxCounts: [[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,3,0,0],[0,0,0,0,0,0,0,0]],
+    dashSteps: [],
+    portals: [[2,4,3,5]]
   },
-  { // 关卡7 - 极限1次
-    map: [
-      [1,1,1,1,1,1],
-      [1,2,0,0,0,1],
-      [1,7,3,0,0,1],
-      [1,0,0,0,0,1],
-      [1,1,1,1,1,1]
-    ],
-    hint: '数字箱子仅剩1次！必须直接推到目标。',
-    timerStart: 10,
-    boxCounts: [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,1,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
-  },
-  { // 关卡8 - 双数字2+2
+  { // 关卡4 - 冲刺箱子基础教学（红色箭头箱子）
     map: [
       [1,1,1,1,1,1,1],
       [1,2,0,0,0,0,1],
-      [1,0,7,3,0,0,1],
-      [1,0,0,0,7,0,1],
-      [1,0,0,0,0,2,1],
+      [1,0,11,3,0,0,1],
+      [1,0,0,0,0,0,1],
       [1,1,1,1,1,1,1]
     ],
-    hint: '两个数字箱子各2次，10秒内完成。',
-    timerStart: 10,
-    boxCounts: [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,2,0,0,0,0],[0,0,0,0,2,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]]
+    hint: '红色冲刺箱子！推动后它会沿直线滑行2格（箭头方向），直到步数用完或撞墙。',
+    timerStart: 30,
+    boxCounts: [],
+    dashSteps: [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,2,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]],
+    portals: []
   },
-  { // 关卡9 - 三个数字（2,2,1）增加一个目标点，共3个目标
+  { // 关卡5 - 冲刺箱子 + 传送门组合
+    map: [
+      [1,1,1,1,1,1,1],
+      [1,2,0,0,0,0,1],
+      [1,0,11,0,9,0,1],
+      [1,0,3,0,0,0,1],
+      [1,0,0,10,0,2,1],
+      [1,1,1,1,1,1,1]
+    ],
+    hint: '冲刺箱子（步数3）推入传送门🌀，从出口⭕出现后继续冲刺。',
+    timerStart: 30,
+    boxCounts: [],
+    dashSteps: [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,3,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]],
+    portals: [[2,4,4,3]]
+  },
+  { // 关卡6 - 双冲刺箱子竞速
     map: [
       [1,1,1,1,1,1,1,1],
       [1,2,0,0,0,0,2,1],
-      [1,7,0,3,0,7,0,1],
-      [1,0,0,0,0,0,0,1],
-      [1,0,0,0,7,0,2,1],
-      [1,0,0,0,0,0,0,1],
+      [1,0,11,0,11,0,0,1],
+      [1,0,0,3,0,0,0,1],
       [1,1,1,1,1,1,1,1]
     ],
-    hint: '数字箱子次数2、2、1，三个目标点，10秒内完成。',
-    timerStart: 10,
-    boxCounts: [
+    hint: '两个冲刺箱子（步数2和3），规划路线让它们同时到位。',
+    timerStart: 25,
+    boxCounts: [],
+    dashSteps: [
       [0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
-      [0,2,0,0,0,2,0,0],[0,0,0,0,0,0,0,0],
-      [0,0,0,0,1,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]
-    ]
+      [0,0,2,0,3,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]
+    ],
+    portals: []
   },
-  { // 关卡10 - 终极挑战三个2次，三个目标点
+  { // 关卡7 - 极限1次 + 传送门救急
+    map: [
+      [1,1,1,1,1,1],
+      [1,2,0,0,0,1],
+      [1,7,3,9,10,1],
+      [1,0,0,0,0,1],
+      [1,1,1,1,1,1]
+    ],
+    hint: '数字箱子仅剩1次！必须直接推到目标，但可以借助传送门调整位置。',
+    timerStart: 10,
+    boxCounts: [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,1,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]],
+    dashSteps: [],
+    portals: [[2,3,2,4]]
+  },
+  { // 关卡8 - 双数字2+2 + 传送门捷径
     map: [
       [1,1,1,1,1,1,1,1],
       [1,2,0,0,0,0,2,1],
-      [1,0,7,0,3,0,7,1],
-      [1,0,0,4,0,0,0,1],
-      [1,0,7,0,0,0,2,1],
+      [1,0,7,0,9,0,7,1],
+      [1,0,0,3,0,0,0,1],
+      [1,0,0,10,0,0,0,1],
+      [1,1,1,1,1,1,1,1]
+    ],
+    hint: '两个数字箱子各2次，利用传送门快速抵达目标。',
+    timerStart: 10,
+    boxCounts: [[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,2,0,0,0,2,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]],
+    dashSteps: [],
+    portals: [[2,4,4,3]]
+  },
+  { // 关卡9 - 冲刺箱子+数字箱子混合
+    map: [
+      [1,1,1,1,1,1,1,1],
+      [1,2,0,0,0,0,2,1],
+      [1,0,11,0,7,0,11,1],
+      [1,0,0,3,0,0,0,1],
       [1,0,0,0,0,0,0,1],
       [1,1,1,1,1,1,1,1]
     ],
-    hint: '三个数字箱子各2次，普通箱子垫步，三个目标点，10秒极限！',
+    hint: '左侧冲刺箱子(步数3)和右侧数字箱子(3次)，协同完成目标。',
+    timerStart: 20,
+    boxCounts: [[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,3,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]],
+    dashSteps: [
+      [0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
+      [0,0,3,0,0,0,2,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]
+    ],
+    portals: []
+  },
+  { // 关卡10 - 终极挑战：冲刺+数字+传送门
+    map: [
+      [1,1,1,1,1,1,1,1,1],
+      [1,2,0,0,0,0,2,0,1],
+      [1,0,11,0,9,0,7,0,1],
+      [1,0,0,3,0,0,0,0,1],
+      [1,0,0,0,10,0,0,0,1],
+      [1,0,7,0,0,0,2,0,1],
+      [1,1,1,1,1,1,1,1,1]
+    ],
+    hint: '冲刺箱子(步数2)、数字箱子(3次和2次)、传送门，10秒极限！',
     timerStart: 10,
     boxCounts: [
-      [0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
-      [0,0,2,0,0,0,2,0],[0,0,0,0,0,0,0,0],
-      [0,0,2,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]
-    ]
+      [0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,2,0,0],[0,0,0,0,0,0,0,0,0],
+      [0,0,2,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]
+    ],
+    dashSteps: [
+      [0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],
+      [0,0,2,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]
+    ],
+    portals: [[2,4,4,4]]
+  },
+  { // 关卡11 - 超长冲刺箱子演示
+    map: [
+      [1,1,1,1,1,1,1,1],
+      [1,0,0,0,2,0,0,1],
+      [1,0,11,3,0,0,0,1],
+      [1,0,0,0,0,0,0,1],
+      [1,1,1,1,1,1,1,1]
+    ],
+    hint: '冲刺箱子步数5，会直线滑动5格撞到目标点停下。',
+    timerStart: 25,
+    boxCounts: [],
+    dashSteps: [[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,5,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]],
+    portals: []
+  },
+  { // 关卡12 - 冲刺+数字+传送门终极考验
+    map: [
+      [1,1,1,1,1,1,1,1,1],
+      [1,2,0,0,0,0,2,0,1],
+      [1,0,11,0,9,0,7,0,1],
+      [1,0,0,3,0,0,0,0,1],
+      [1,0,0,0,10,0,0,0,1],
+      [1,0,11,0,0,0,2,0,1],
+      [1,1,1,1,1,1,1,1,1]
+    ],
+    hint: '两个冲刺箱子(步数3/2)，一个数字箱子(2次)，传送门，10秒终极挑战！',
+    timerStart: 10,
+    boxCounts: [
+      [0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,2,0,0],[0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]
+    ],
+    dashSteps: [
+      [0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],
+      [0,0,3,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0],[0,0,2,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]
+    ],
+    portals: [[2,4,4,4]]
   }
 ];
 
 let currentLevel = 0;
 let baseMap = [], gameState = [];
 let boxCounts = [];
+let dashSteps = [];
+let portalPairs = [];
 let moves = 0;
 let gameActive = true;
 let winTriggered = false;
@@ -902,7 +996,7 @@ if(typeof confetti==='undefined'){ const s=document.createElement('script'); s.s
 // ---------- 音频 ----------
 function getAudio(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
 function playSound(type){
-  if(!gameActive && type!=='win' && type!=='reset' && type!=='explosion' && type!=='tick') return;
+  if(!gameActive && type!=='win' && type!=='reset' && type!=='explosion' && type!=='tick' && type!=='portal') return;
   try{
     const ctx=getAudio(); if(ctx.state==='suspended') ctx.resume();
     const osc=ctx.createOscillator(), gain=ctx.createGain();
@@ -927,8 +1021,104 @@ function playSound(type){
       osc.type='sine'; osc.frequency.setValueAtTime(1320,now); osc.frequency.exponentialRampToValueAtTime(880,now+0.03);
       gain.gain.setValueAtTime(0.04,now); gain.gain.linearRampToValueAtTime(0,now+0.07);
     }
+    else if(type==='portal'){
+      osc.type='sine'; osc.frequency.setValueAtTime(880,now); osc.frequency.exponentialRampToValueAtTime(440,now+0.1);
+      gain.gain.setValueAtTime(0.1,now); gain.gain.linearRampToValueAtTime(0,now+0.2);
+    }
     osc.start(); osc.stop(now+0.6);
   }catch(e){}
+}
+
+// 传送门逻辑
+function applyPortal(row, col) {
+  for(let p of portalPairs) {
+    if(row === p[0] && col === p[1]) {
+      const exitRow = p[2], exitCol = p[3];
+      const targetCell = gameState[exitRow][exitCol];
+      if(targetCell === 0 || targetCell === 2) {
+        playSound('portal');
+        const entryTile = getTile(row, col);
+        if(entryTile) addFlashEffect(entryTile);
+        const movingValue = gameState[row][col];
+        const isBox = (movingValue === 4 || movingValue === 6 || movingValue === 7 || movingValue === 8 || movingValue === 11 || movingValue === 12);
+        let boxCountVal = 0, dashVal = 0;
+        if(isBox) {
+          if(boxCounts[row][col] > 0) boxCountVal = boxCounts[row][col];
+          if(dashSteps[row][col] > 0) dashVal = dashSteps[row][col];
+        }
+        gameState[row][col] = baseMap[row][col] === 2 ? 2 : 0;
+        let newValue = movingValue;
+        if(isBox) {
+          const isTargetSpot = baseMap[exitRow][exitCol] === 2;
+          if(isTargetSpot) {
+            if(movingValue === 4) newValue = 6;
+            else if(movingValue === 7) newValue = 8;
+            else if(movingValue === 11) newValue = 12;
+            else newValue = movingValue;
+          } else {
+            if(movingValue === 6) newValue = 4;
+            else if(movingValue === 8) newValue = 7;
+            else if(movingValue === 12) newValue = 11;
+            else newValue = movingValue;
+          }
+        } else {
+          newValue = (baseMap[exitRow][exitCol] === 2) ? 5 : 3;
+        }
+        gameState[exitRow][exitCol] = newValue;
+        if(isBox) {
+          if(boxCountVal > 0) { boxCounts[exitRow][exitCol] = boxCountVal; boxCounts[row][col] = 0; }
+          if(dashVal > 0) { dashSteps[exitRow][exitCol] = dashVal; dashSteps[row][col] = 0; }
+        }
+        const exitTile = getTile(exitRow, exitCol);
+        if(exitTile) addRippleEffect(exitTile);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// 冲刺箱子直线滑行
+function dashBoxSlide(row, col, dr, dc, steps) {
+  let remaining = steps;
+  let currentRow = row, currentCol = col;
+  while(remaining > 0) {
+    const nextRow = currentRow + dr, nextCol = currentCol + dc;
+    if(nextRow<0 || nextRow>=gameState.length || nextCol<0 || nextCol>=gameState[0].length) break;
+    const target = gameState[nextRow][nextCol];
+    if(target === 0 || target === 2) {
+      const isTargetSpot = baseMap[nextRow][nextCol] === 2;
+      const oldValue = gameState[currentRow][currentCol];
+      let newValue = oldValue;
+      if(oldValue === 11) newValue = isTargetSpot ? 12 : 11;
+      else if(oldValue === 12) newValue = isTargetSpot ? 12 : 11;
+      gameState[nextRow][nextCol] = newValue;
+      gameState[currentRow][currentCol] = baseMap[currentRow][currentCol] === 2 ? 2 : 0;
+      if(dashSteps[currentRow][currentCol] > 0) {
+        dashSteps[nextRow][nextCol] = dashSteps[currentRow][currentCol] - 1;
+        dashSteps[currentRow][currentCol] = 0;
+        remaining = dashSteps[nextRow][nextCol];
+      } else {
+        dashSteps[nextRow][nextCol] = remaining - 1;
+        remaining--;
+      }
+      currentRow = nextRow; currentCol = nextCol;
+      if(baseMap[currentRow][currentCol] === 9) {
+        const oldRow = currentRow, oldCol = currentCol;
+        if(applyPortal(currentRow, currentCol)) {
+          let newPos = null;
+          for(let r=0; r<gameState.length && !newPos; r++)
+            for(let c=0; c<gameState[0].length && !newPos; c++)
+              if((gameState[r][c] === 11 || gameState[r][c] === 12) && (r!==oldRow || c!==oldCol)) newPos = [r,c];
+          if(newPos) {
+            currentRow = newPos[0]; currentCol = newPos[1];
+            remaining = dashSteps[currentRow][currentCol];
+          } else break;
+        }
+      }
+    } else break;
+  }
+  return true;
 }
 
 // ---------- 炸弹计时器 ----------
@@ -1011,15 +1201,15 @@ function initGame(levelIdx) {
   gameState = ld.map.map(row => [...row]);
   const rows = gameState.length, cols = gameState[0].length;
   boxCounts = Array(rows).fill().map(() => Array(cols).fill(0));
+  dashSteps = Array(rows).fill().map(() => Array(cols).fill(0));
   if(ld.boxCounts && ld.boxCounts.length) {
-    for(let r=0; r<rows; r++) {
-      for(let c=0; c<cols; c++) {
-        if(ld.boxCounts[r] && ld.boxCounts[r][c]) {
-          boxCounts[r][c] = ld.boxCounts[r][c];
-        }
-      }
-    }
+    for(let r=0; r<rows; r++) for(let c=0; c<cols; c++) if(ld.boxCounts[r] && ld.boxCounts[r][c]) boxCounts[r][c] = ld.boxCounts[r][c];
   }
+  if(ld.dashSteps && ld.dashSteps.length) {
+    for(let r=0; r<rows; r++) for(let c=0; c<cols; c++) if(ld.dashSteps[r] && ld.dashSteps[r][c]) dashSteps[r][c] = ld.dashSteps[r][c];
+  }
+  portalPairs = [];
+  if(ld.portals && ld.portals.length) portalPairs = ld.portals;
   moves = 0;
   gameActive = true;
   winTriggered = false;
@@ -1036,7 +1226,7 @@ function updateStatsAndRender() {
   const {total, done} = countBoxes();
   document.getElementById('totalBoxes').textContent = total;
   document.getElementById('doneCount').innerHTML = `${done} / <span id="totalBoxes">${total}</span>`;
-  if(gameActive && !winTriggered && !gameState.flat().some(cell => cell === 4 || cell === 7)) {
+  if(gameActive && !winTriggered && !gameState.flat().some(cell => cell === 4 || cell === 7 || cell === 11)) {
     triggerWin();
   }
 }
@@ -1045,8 +1235,8 @@ function countBoxes() {
   for(let r=0; r<gameState.length; r++) {
     for(let c=0; c<gameState[0].length; c++) {
       const v = gameState[r][c];
-      if(v === 4 || v === 7) total++;
-      if(v === 6 || v === 8) { total++; done++; }
+      if(v === 4 || v === 7 || v === 11) total++;
+      if(v === 6 || v === 8 || v === 12) { total++; done++; }
     }
   }
   return {total, done};
@@ -1061,6 +1251,8 @@ function renderGrid() {
       tile.className = 'tile';
       const cell = gameState[r][c];
       const base = baseMap[r][c];
+      if(base === 9) tile.classList.add('portal-entry');
+      if(base === 10) tile.classList.add('portal-exit');
       if(cell === 1) tile.classList.add('wall');
       if(base === 2) tile.classList.add('target');
       if(cell === 3 || cell === 5) tile.classList.add('player');
@@ -1068,11 +1260,21 @@ function renderGrid() {
         tile.classList.add('box');
         if(cell === 6 || cell === 8) tile.classList.add('box-on-target');
       }
+      if(cell === 11 || cell === 12) {
+        tile.classList.add('dash-box');
+        if(cell === 12) tile.classList.add('box-on-target');
+      }
       if((cell === 7 || cell === 8) && boxCounts[r][c] > 0) {
         const numSpan = document.createElement('span');
         numSpan.className = 'box-number';
         numSpan.textContent = boxCounts[r][c];
         tile.appendChild(numSpan);
+      }
+      if((cell === 11 || cell === 12) && dashSteps[r][c] > 0) {
+        const dashSpan = document.createElement('span');
+        dashSpan.className = 'dash-number';
+        dashSpan.textContent = dashSteps[r][c];
+        tile.appendChild(dashSpan);
       }
       tile.dataset.row = r; tile.dataset.col = c;
       g.appendChild(tile);
@@ -1091,7 +1293,7 @@ function triggerWin() {
   document.getElementById('winOverlay').classList.add('show');
 }
 
-// 移动逻辑
+// 移动逻辑（支持冲刺箱子）
 function tryMove(dr, dc) {
   if(!gameActive) return false;
   let pr = -1, pc = -1;
@@ -1107,22 +1309,24 @@ function tryMove(dr, dc) {
   const target = gameState[nr][nc];
   const leavingBase = baseMap[pr][pc] === 2 ? 2 : 0;
   const playerTile = getTile(pr,pc); if(playerTile) addFlashEffect(playerTile);
-  if(target === 0 || target === 2) {
+  if(target === 0 || target === 2 || target === 9 || target === 10) {
     gameState[pr][pc] = leavingBase;
     gameState[nr][nc] = (baseMap[nr][nc] === 2) ? 5 : 3;
     moves++;
     playSound('move');
+    if(baseMap[nr][nc] === 9 && applyPortal(nr, nc)) {}
     const newTile = getTile(nr,nc); if(newTile) addRippleEffect(newTile);
     updateStatsAndRender();
     return true;
   }
-  else if(target === 4 || target === 6 || target === 7 || target === 8) {
+  else if(target === 4 || target === 6 || target === 7 || target === 8 || target === 11 || target === 12) {
     const nnr = nr+dr, nnc = nc+dc;
     if(nnr<0 || nnr>=gameState.length || nnc<0 || nnc>=gameState[0].length) return false;
     const beyond = gameState[nnr][nnc];
-    if(beyond === 0 || beyond === 2) {
+    if(beyond === 0 || beyond === 2 || beyond === 9 || beyond === 10) {
       const isTargetSpot = baseMap[nnr][nnc] === 2;
       const isNumberBox = (target === 7 || target === 8);
+      const isDashBox = (target === 11 || target === 12);
       let newBoxValue = isTargetSpot ? 6 : 4;
       let newBoxCount = 0;
       let shouldDestroy = false;
@@ -1138,6 +1342,20 @@ function tryMove(dr, dc) {
           showBoxExplosion(nr, nc);
           playSound('explosion');
         }
+      } else if(isDashBox) {
+        const steps = dashSteps[nr][nc];
+        if(steps > 0) {
+          gameState[pr][pc] = leavingBase;
+          gameState[nr][nc] = (baseMap[nr][nc] === 2) ? 5 : 3;
+          moves++;
+          playSound('push');
+          dashBoxSlide(nr, nc, dr, dc, steps);
+          updateStatsAndRender();
+          return true;
+        } else {
+          newBoxValue = isTargetSpot ? 6 : 4;
+          newBoxCount = 0;
+        }
       }
       if(shouldDestroy) {
         gameState[nnr][nnc] = 1;
@@ -1151,6 +1369,7 @@ function tryMove(dr, dc) {
       if(isNumberBox && !shouldDestroy) boxCounts[nr][nc] = 0;
       moves++;
       playSound(isNumberBox ? (shouldDestroy ? 'explosion' : 'push') : (isTargetSpot ? 'success' : 'push'));
+      if(baseMap[nnr][nnc] === 9 && applyPortal(nnr, nnc)) {}
       const boxTile = getTile(nr,nc); if(boxTile) addRippleEffect(boxTile);
       const newPosTile = getTile(nnr,nnc); if(newPosTile) addFlashEffect(newPosTile);
       updateStatsAndRender();
@@ -1160,7 +1379,7 @@ function tryMove(dr, dc) {
   return false;
 }
 
-// ---------- 智能提示系统 ----------
+// 智能提示系统
 function showArrowHint() {
   if(currentArrow) currentArrow.remove();
   let pr = -1, pc = -1;
@@ -1176,11 +1395,11 @@ function showArrowHint() {
     const nr = pr + dr, nc = pc + dc;
     if(nr<0 || nr>=gameState.length || nc<0 || nc>=gameState[0].length) continue;
     const target = gameState[nr][nc];
-    if(target === 4 || target === 6 || target === 7 || target === 8) {
+    if(target === 4 || target === 6 || target === 7 || target === 8 || target === 11 || target === 12) {
       const nnr = nr + dr, nnc = nc + dc;
       if(nnr>=0 && nnr<gameState.length && nnc>=0 && nnc<gameState[0].length) {
         const beyond = gameState[nnr][nnc];
-        if(beyond === 0 || beyond === 2) {
+        if(beyond === 0 || beyond === 2 || beyond === 9 || beyond === 10) {
           const tile = getTile(pr, pc);
           if(tile) {
             currentArrow = document.createElement('div');
@@ -1203,7 +1422,7 @@ function showArrowHint() {
     const nr = pr + dr, nc = pc + dc;
     if(nr>=0 && nr<gameState.length && nc>=0 && nc<gameState[0].length) {
       const target = gameState[nr][nc];
-      if(target === 0 || target === 2) {
+      if(target === 0 || target === 2 || target === 9 || target === 10) {
         const tile = getTile(pr, pc);
         if(tile) {
           currentArrow = document.createElement('div');
@@ -1280,7 +1499,6 @@ document.getElementById('grid').addEventListener('touchend', e => {
   touchStart = null;
 });
 
-// 主题切换
 function toggleTheme() {
   const html = document.documentElement, isDark = html.dataset.theme === 'dark';
   const newTheme = isDark ? 'light' : 'dark';
@@ -1296,7 +1514,6 @@ function initTheme() {
   document.getElementById('themeIcon').textContent = theme === 'dark' ? '☀️' : '🌙';
 }
 
-// 事件绑定
 document.getElementById('themeBtn').addEventListener('click', toggleTheme);
 document.getElementById('restartBtn').addEventListener('click', restartGame);
 document.getElementById('hintBtn').addEventListener('click', toggleHint);
