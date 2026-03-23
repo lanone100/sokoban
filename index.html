@@ -1,1537 +1,309 @@
 <!DOCTYPE html>
-<html lang="zh-Hant" data-theme="light">
+<html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Cubic Mind — 推箱子 | 冲刺箱子·传送门·十二关</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@200;300;400&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-/* 完整样式（与前版相同，确保视觉效果） */
-:root {
-  --bg-primary: #f5f5f7;
-  --bg-secondary: #ffffff;
-  --bg-card: rgba(255, 255, 255, 0.96);
-  --bg-glass: rgba(255, 255, 255, 0.85);
-  --border-color: rgba(0, 0, 0, 0.12);
-  --shadow-lg: 0 20px 40px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
-  --shadow-md: 0 8px 20px rgba(0,0,0,0.06);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
-  --text-primary: #1c1c1e;
-  --text-secondary: #3a3a3c;
-  --text-tertiary: #8e8e93;
-  --accent-blue: #007aff;
-  --accent-indigo: #5856d6;
-  --accent-purple: #af52de;
-  --accent-green: #34c759;
-  --accent-red: #ff3b30;
-  --tile-wall: rgba(0,0,0,0.05);
-  --tile-target-border: rgba(0,122,255,0.5);
-  --tile-target-bg: rgba(0,122,255,0.08);
-  --player-bg: linear-gradient(145deg, #2c2c2e 0%, #1c1c1e 100%);
-  --player-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  --box-bg: linear-gradient(145deg, #ff9f0a 0%, #e07c00 100%);
-  --box-shadow: 0 4px 12px rgba(224,124,0,0.35);
-  --box-done-bg: linear-gradient(145deg, #30d158 0%, #1e9b42 100%);
-  --box-done-shadow: 0 4px 12px rgba(48,209,88,0.4);
-  --portal-bg: linear-gradient(135deg, #af52de, #8e44ad);
-  --dash-box-bg: linear-gradient(145deg, #ff3b30, #cc2f1f);
-  --dash-box-shadow: 0 4px 12px rgba(255,59,48,0.5);
-  --grid-gap: 4px;
-  --tile-size: 48px;
-  --tile-radius: 10px;
-  --game-max-width: 560px;
-  --right-panel-width: 240px;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Cubic Mind Ω - 橫豎兼容旗艦版</title>
+    <style>
+        :root {
+            --bg: #F2F2F7; --card: rgba(255, 255, 255, 0.7); --text: #1C1C1E;
+            --accent: #007AFF; --danger: #FF3B30; --success: #34C759;
+            --gray-box: #8E8E93; --yellow-box: #FFD60A; --red-box: #FF3B30; --purple-box: #AF52DE;
+            --tile-size: min(8vw, 45px);
+        }
 
-[data-theme="dark"] {
-  --bg-primary: #000000;
-  --bg-secondary: #1c1c1e;
-  --bg-card: rgba(28,28,30,0.92);
-  --bg-glass: rgba(28,28,30,0.75);
-  --border-color: rgba(255,255,255,0.1);
-  --shadow-lg: 0 20px 40px rgba(0,0,0,0.5);
-  --shadow-md: 0 8px 20px rgba(0,0,0,0.4);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
-  --text-primary: #ffffff;
-  --text-secondary: #aeaeb2;
-  --text-tertiary: #8e8e93;
-  --tile-wall: rgba(99,99,102,0.25);
-  --tile-target-border: rgba(50,173,230,0.6);
-  --tile-target-bg: rgba(50,173,230,0.12);
-  --player-bg: linear-gradient(145deg, #f2f2f7 0%, #e5e5ea 100%);
-  --player-shadow: 0 4px 12px rgba(255,255,255,0.15);
-  --box-bg: linear-gradient(145deg, #ffd60a 0%, #ffb800 100%);
-  --box-shadow: 0 4px 12px rgba(255,214,10,0.3);
-  --portal-bg: linear-gradient(135deg, #bf6ee0, #aa5fcc);
-  --dash-box-bg: linear-gradient(145deg, #ff5e4a, #cc2f1f);
-  --dash-box-shadow: 0 4px 12px rgba(255,94,74,0.5);
-}
+        [data-theme="dark"] {
+            --bg: #000000; --card: rgba(28, 28, 30, 0.8); --text: #FFFFFF;
+        }
 
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
-html, body {
-  margin: 0;
-  padding: 0;
-  min-height: 100dvh;
-  overflow-x: hidden;
-}
-body {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: 'Noto Sans TC', -apple-system, system-ui, sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 12px;
-  transition: background 0.2s ease;
-}
-.backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-  opacity: 0.5;
-}
-.orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(70px);
-  animation: float 12s ease-in-out infinite alternate;
-}
-.orb-1 {
-  width: 300px;
-  height: 300px;
-  top: -80px;
-  left: -80px;
-  background: radial-gradient(circle, rgba(88,86,214,0.25), transparent 70%);
-}
-.orb-2 {
-  width: 250px;
-  height: 250px;
-  bottom: -60px;
-  right: -60px;
-  background: radial-gradient(circle, rgba(50,173,230,0.2), transparent 70%);
-  animation-delay: -4s;
-}
-@keyframes float {
-  from { transform: translate(0, 0); }
-  to { transform: translate(20px, 15px); }
-}
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
 
-.sticky-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
-  background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-color);
-  border-radius: 0 0 32px 32px;
-  padding: 12px 20px;
-  margin-bottom: 12px;
-  box-shadow: var(--shadow-sm);
-}
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-.title-group { display: flex; flex-direction: column; }
-.title { font-size: 20px; font-weight: 300; letter-spacing: 0.1em; color: var(--text-primary); line-height: 1.2; }
-.title span { color: var(--accent-indigo); font-weight: 400; }
-.subtitle { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-tertiary); margin-top: 2px; }
-.theme-btn {
-  width: 38px; height: 38px; border-radius: 50%;
-  border: 1px solid var(--border-color);
-  cursor: pointer;
-  background: var(--bg-glass);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  transition: all 0.15s ease;
-  color: var(--text-secondary);
-}
-.theme-btn:active { transform: scale(0.92); background: var(--accent-indigo); color: white; }
-.game-container {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: var(--game-max-width);
-  margin: 0 auto;
-  background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-color);
-  border-radius: 32px;
-  padding: 18px 16px 20px;
-  box-shadow: var(--shadow-lg);
-  transition: background-color 0.1s;
-}
-@media (min-width: 860px) {
-  :root {
-    --tile-size: 58px;
-    --tile-radius: 14px;
-    --game-max-width: 1000px;
-  }
-  .game-container {
-    max-width: var(--game-max-width);
-    display: grid;
-    grid-template-columns: 1fr var(--right-panel-width);
-    gap: 28px;
-    padding: 28px 32px;
-    align-items: start;
-  }
-  .game-grid {
-    grid-column: 1 / 2;
-    margin: 0;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-  .game-stats-row { grid-column: 2 / 3; grid-row: 1; margin: 0 0 16px 0; }
-  .game-legend { grid-column: 2 / 3; grid-row: 2; margin: 12px 0 8px; }
-  .game-controls { grid-column: 2 / 3; grid-row: 3; margin-top: 12px; }
-  .game-hint { grid-column: 2 / 3; grid-row: 4; margin-top: 12px; }
-  .game-kbd { grid-column: 2 / 3; grid-row: 5; margin-top: 16px; text-align: center; }
-  .stats-row { flex-direction: column; align-items: stretch; gap: 10px; }
-  .stats-bar { width: 100%; }
-  .level-nav { justify-content: center; margin-top: 4px; }
-  .dpad { width: 180px; }
-  .action-bar { gap: 10px; }
-  .legend { justify-content: flex-start; flex-wrap: wrap; }
-}
-.bomb-progress-container {
-  width: 100%;
-  height: 6px;
-  background: rgba(128,128,128,0.2);
-  border-radius: 3px;
-  margin-bottom: 12px;
-  overflow: hidden;
-  display: none;
-}
-.bomb-progress-bar {
-  height: 100%;
-  width: 100%;
-  background: linear-gradient(90deg, var(--accent-blue), var(--accent-red));
-  border-radius: 3px;
-  transition: width 0.1s linear;
-}
-.bomb-progress-bar.critical {
-  box-shadow: 0 0 8px #ff3b30;
-  animation: pulseGlow 0.5s ease-in-out infinite;
-}
-@keyframes pulseGlow {
-  0% { filter: brightness(1); }
-  50% { filter: brightness(1.3); }
-  100% { filter: brightness(1); }
-}
-.game-container.shake-continuous {
-  animation: gentleShake 0.08s infinite ease-in-out;
-}
-@keyframes gentleShake {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  25% { transform: translate(1px, 0) rotate(0.2deg); }
-  75% { transform: translate(-1px, 0) rotate(-0.2deg); }
-  100% { transform: translate(0, 0) rotate(0deg); }
-}
-.shake {
-  animation: shakeEffect 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-}
-@keyframes shakeEffect {
-  0% { transform: translate(0, 0); }
-  10% { transform: translate(-4px, 0); }
-  20% { transform: translate(4px, 0); }
-  30% { transform: translate(-4px, 0); }
-  40% { transform: translate(4px, 0); }
-  50% { transform: translate(-2px, 0); }
-  60% { transform: translate(2px, 0); }
-  70% { transform: translate(-1px, 0); }
-  80% { transform: translate(1px, 0); }
-  100% { transform: translate(0, 0); }
-}
-.stats-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin: 12px 0 12px;
-}
-.stats-bar { display: flex; gap: 8px; flex: 2; }
-.stat-pill {
-  flex: 1;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 6px 4px;
-  text-align: center;
-}
-.stat-label { font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-tertiary); font-weight: 500; }
-.stat-value { font-size: 20px; font-weight: 300; color: var(--text-primary); line-height: 1; }
-.stat-value.green { color: var(--accent-green); }
-.timer-pill {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 6px 12px;
-  text-align: center;
-  min-width: 85px;
-}
-.timer-pill.bomb-active { background: rgba(255,59,48,0.08); border-color: var(--accent-red); }
-.timer-label { font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-tertiary); display: flex; align-items: center; justify-content: center; gap: 4px; }
-.timer-value { font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1; }
-.timer-value.warning { color: var(--accent-red); animation: pulse 0.8s infinite; }
-@keyframes pulse {
-  0% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.05); }
-  100% { opacity: 1; transform: scale(1); }
-}
-.level-nav {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 40px;
-  padding: 3px 8px;
-}
-.level-nav-btn {
-  background: transparent;
-  border: none;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--accent-indigo);
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 30px;
-  transition: all 0.15s;
-}
-.level-nav-btn:active { transform: scale(0.92); background: rgba(88,86,214,0.2); }
-.level-nav-text {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  background: var(--bg-glass);
-  padding: 4px 8px;
-  border-radius: 20px;
-}
-#grid {
-  display: grid;
-  gap: var(--grid-gap);
-  padding: 8px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 20px;
-  width: fit-content;
-  max-width: 100%;
-  margin: 0 auto;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-.tile {
-  width: var(--tile-size);
-  height: var(--tile-size);
-  border-radius: var(--tile-radius);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  flex-shrink: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: white;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-}
-.wall { background: var(--tile-wall); border-radius: 8px; }
-.target::after {
-  content: '';
-  position: absolute;
-  inset: 6px;
-  border-radius: 6px;
-  border: 2px dashed var(--tile-target-border);
-  background: var(--tile-target-bg);
-}
-.player {
-  background: var(--player-bg);
-  border-radius: 14px;
-  box-shadow: var(--player-shadow);
-  z-index: 3;
-  animation: playerPop 0.2s cubic-bezier(0.34,1.56,0.64,1);
-}
-.box {
-  background: var(--box-bg);
-  border-radius: 10px;
-  box-shadow: var(--box-shadow);
-  z-index: 2;
-  transition: transform 0.15s;
-}
-.box-on-target {
-  background: var(--box-done-bg) !important;
-  box-shadow: var(--box-done-shadow) !important;
-  transform: scale(0.92);
-}
-.box-on-target::after {
-  content: '✓';
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255,255,255,0.9);
-  font-size: 16px;
-  font-weight: 600;
-  z-index: 5;
-}
-.box-number {
-  position: absolute;
-  bottom: 2px;
-  right: 4px;
-  font-size: 12px;
-  font-weight: 700;
-  background: rgba(0,0,0,0.6);
-  padding: 0 4px;
-  border-radius: 10px;
-  color: #ffd966;
-  line-height: 1.2;
-  z-index: 6;
-}
-.dash-box {
-  background: var(--dash-box-bg) !important;
-  box-shadow: var(--dash-box-shadow) !important;
-  position: relative;
-}
-.dash-box::before {
-  content: '➡️';
-  position: absolute;
-  font-size: 18px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0.9;
-  text-shadow: none;
-  pointer-events: none;
-}
-.dash-number {
-  position: absolute;
-  bottom: 2px;
-  left: 4px;
-  font-size: 12px;
-  font-weight: 700;
-  background: rgba(0,0,0,0.7);
-  padding: 0 4px;
-  border-radius: 10px;
-  color: white;
-  line-height: 1.2;
-  z-index: 6;
-}
-.portal-entry, .portal-exit {
-  background: var(--portal-bg);
-  border-radius: 10px;
-  position: relative;
-}
-.portal-entry::before {
-  content: '🌀';
-  position: absolute;
-  font-size: 24px;
-  opacity: 0.8;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-.portal-exit::before {
-  content: '⭕';
-  position: absolute;
-  font-size: 24px;
-  opacity: 0.8;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-@keyframes playerPop { from { transform: scale(0.9); } to { transform: scale(1); } }
-.hint-arrow {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  font-weight: bold;
-  text-shadow: 0 0 4px rgba(0,0,0,0.5);
-  pointer-events: none;
-  z-index: 20;
-  animation: fadeArrow 0.3s ease-out;
-}
-@keyframes fadeArrow { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-.box-explosion {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle, #ff8c00 0%, #ff3b30 60%, transparent 100%);
-  pointer-events: none;
-  animation: boxExplode 0.5s ease-out forwards;
-  z-index: 200;
-  border-radius: inherit;
-}
-@keyframes boxExplode {
-  0% { opacity: 1; transform: scale(0.5); }
-  50% { opacity: 0.8; transform: scale(1.2); }
-  100% { opacity: 0; transform: scale(1.8); }
-}
-.bomb-explosion {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle, #ff3b30 0%, #ff8c00 70%, transparent 100%);
-  pointer-events: none;
-  animation: explode 0.6s ease-out forwards;
-  z-index: 200;
-}
-@keyframes explode {
-  0% { opacity: 1; transform: scale(0.5); }
-  100% { opacity: 0; transform: scale(2.5); }
-}
-.ripple-effect {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,215,0,0.6) 0%, rgba(255,100,0,0) 70%);
-  pointer-events: none;
-  animation: ripple 0.4s ease-out forwards;
-  z-index: 10;
-}
-.flash-effect {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 80%);
-  pointer-events: none;
-  animation: fadeOut 0.2s ease-out forwards;
-  z-index: 10;
-}
-@keyframes ripple {
-  0% { transform: scale(0.2); opacity: 0.8; }
-  100% { transform: scale(1.6); opacity: 0; }
-}
-@keyframes fadeOut {
-  from { opacity: 1; transform: scale(0.8); }
-  to { opacity: 0; transform: scale(1.2); }
-}
-.controls-section { margin-top: 16px; }
-.dpad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  width: 150px;
-  margin: 0 auto;
-}
-.dpad-btn {
-  aspect-ratio: 1;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  background: var(--bg-glass);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-  font-size: 18px;
-  color: var(--text-secondary);
-  transition: all 0.08s linear;
-}
-.dpad-btn:active, .dpad-btn.pressed { transform: scale(0.88); background: var(--accent-indigo); color: white; }
-.dpad-btn.center-empty { visibility: hidden; }
-.action-bar {
-  display: flex;
-  gap: 10px;
-  margin-top: 16px;
-}
-.action-btn {
-  flex: 1;
-  height: 44px;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  transition: all 0.15s;
-}
-.btn-restart { background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-secondary); }
-.btn-restart:active { transform: scale(0.96); opacity: 0.7; }
-.btn-hint { background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple)); color: white; box-shadow: 0 2px 10px rgba(88,86,214,0.3); }
-.btn-hint:active { transform: scale(0.96); }
-.win-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 100;
-  border-radius: 32px;
-  background: var(--bg-card);
-  backdrop-filter: blur(40px);
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  animation: fadeIn 0.3s ease;
-}
-.win-overlay.show { display: flex; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
-.win-emoji { font-size: 64px; }
-.win-title { font-size: 24px; font-weight: 300; color: var(--text-primary); }
-.win-sub { font-size: 12px; color: var(--text-secondary); }
-.win-buttons { display: flex; gap: 12px; margin-top: 8px; }
-.win-btn {
-  padding: 8px 20px;
-  border-radius: 40px;
-  border: none;
-  cursor: pointer;
-  background: linear-gradient(135deg, var(--accent-indigo), var(--accent-purple));
-  color: white;
-  font-size: 13px;
-  font-weight: 500;
-}
-.win-btn.secondary { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); box-shadow: none; }
-.hint-bar {
-  display: none;
-  padding: 8px 12px;
-  background: rgba(88,86,214,0.1);
-  border-radius: 18px;
-  font-size: 11px;
-  color: var(--accent-indigo);
-  text-align: center;
-  margin-top: 12px;
-}
-.hint-bar.show { display: block; }
-.kbd-hint {
-  margin-top: 10px;
-  text-align: center;
-  font-size: 9px;
-  color: var(--text-tertiary);
-}
-kbd {
-  display: inline-block;
-  padding: 1px 4px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-size: 9px;
-}
-.legend {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 14px;
-  flex-wrap: wrap;
-}
-.legend-item { display: flex; align-items: center; gap: 5px; font-size: 9px; color: var(--text-tertiary); }
-.legend-dot { width: 12px; height: 12px; border-radius: 3px; }
-.ld-player { background: var(--player-bg); }
-.ld-box { background: linear-gradient(135deg, #ff9f0a, #e07c00); border-radius: 3px; }
-.ld-done { background: linear-gradient(135deg, #30d158, #1e9b42); border-radius: 3px; }
-.ld-target { border: 1.5px dashed var(--tile-target-border); background: var(--tile-target-bg); }
-.ld-portal { background: linear-gradient(135deg, #af52de, #8e44ad); border-radius: 3px; }
-.ld-dash { background: linear-gradient(135deg, #ff3b30, #cc2f1f); border-radius: 3px; }
-@media (max-width: 420px) {
-  :root { --tile-size: 42px; --tile-radius: 9px; --grid-gap: 3px; }
-  .game-container { padding: 14px 12px 16px; border-radius: 28px; }
-  .stat-value, .timer-value { font-size: 18px; }
-  .dpad { width: 130px; gap: 6px; }
-  .dpad-btn { font-size: 16px; }
-  .action-btn { height: 40px; font-size: 12px; }
-  .box-number, .dash-number { font-size: 10px; bottom: 1px; right: 2px; left: auto; }
-  .dash-box::before { font-size: 14px; }
-  .portal-entry::before, .portal-exit::before { font-size: 18px; }
-}
-@media (max-width: 360px) {
-  :root { --tile-size: 38px; --tile-radius: 8px; --grid-gap: 2px; }
-  .game-container { padding: 12px 10px 14px; }
-  .legend-item { font-size: 8px; }
-  .box-number, .dash-number { font-size: 9px; }
-  .dash-box::before { font-size: 12px; }
-  .portal-entry::before, .portal-exit::before { font-size: 16px; }
-}
-</style>
+        body {
+            margin: 0; padding: 0; background: var(--bg); color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            transition: background 0.4s ease; overflow: hidden;
+        }
+
+        /* 響應式框架計算方案 */
+        .app-container {
+            display: flex; gap: 30px; padding: 20px;
+            width: 100%; max-width: 1000px; height: 100vh;
+            flex-direction: column; /* 預設直式 (手機) */
+            align-items: center; justify-content: center;
+        }
+
+        @media (orientation: landscape) and (min-width: 700px) {
+            .app-container { flex-direction: row; justify-content: center; align-items: center; }
+            .side-panel { width: 300px; display: flex; flex-direction: column; gap: 20px; }
+            --tile-size: 55px;
+        }
+
+        /* 遊戲區域 */
+        .game-board {
+            display: grid; grid-template-columns: repeat(10, var(--tile-size));
+            grid-template-rows: repeat(10, var(--tile-size));
+            gap: 4px; background: rgba(0,0,0,0.05); padding: 10px;
+            border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .tile {
+            width: var(--tile-size); height: var(--tile-size);
+            border-radius: 8px; position: relative;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 14px; font-weight: 700; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 箱子屬性樣式 */
+        .wall { background: #3A3A3C; }
+        .target { border: 2.5px solid var(--accent); box-sizing: border-box; }
+        .target::after { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+        
+        .player { background: var(--text); border-radius: 12px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transform: scale(0.9); }
+        .box-white { background: #FFFFFF; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .box-gray { background: var(--gray-box); color: white; }
+        .box-yellow { background: var(--yellow-box); color: black; }
+        .box-red { background: var(--red-box); color: white; }
+        .box-purple { background: var(--purple-box); box-shadow: 0 0 15px var(--purple-box); }
+        
+        .box-red.dir-up::after { content: '↑'; }
+        .box-red.dir-down::after { content: '↓'; }
+        .box-red.dir-left::after { content: '←'; }
+        .box-red.dir-right::after { content: '→'; }
+
+        .stuck-warning { outline: 3px solid var(--danger); outline-offset: -3px; }
+
+        /* 資訊介面 */
+        .header { text-align: left; width: 100%; margin-bottom: 10px; }
+        .side-panel { width: 100%; max-width: 400px; }
+        
+        .stat-card {
+            background: var(--card); border-radius: 20px; padding: 15px;
+            display: flex; justify-content: space-around; margin-bottom: 15px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        /* 虛擬控制器 */
+        .controls {
+            display: grid; grid-template-areas: ". u ." "l d r";
+            gap: 12px; justify-content: center; margin-top: 20px;
+        }
+        .btn {
+            width: 60px; height: 60px; border-radius: 18px;
+            background: var(--card); border: 1px solid rgba(255,255,255,0.4);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 20px; cursor: pointer; transition: 0.1s;
+        }
+        .btn:active { transform: scale(0.9); background: var(--accent); color: white; }
+
+        .theme-btn {
+            position: fixed; top: 20px; right: 20px;
+            width: 44px; height: 44px; border-radius: 50%;
+            background: var(--card); border: none; cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+        }
+    </style>
 </head>
 <body>
 
-<div class="backdrop"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+<button class="theme-btn" onclick="toggleTheme()">🌓</button>
 
-<div class="sticky-header">
-  <div class="header">
-    <div class="title-group"><div class="title">CUBIC <span>MIND</span></div><div class="subtitle">推箱子 · 冲刺箱子</div></div>
-    <button class="theme-btn" id="themeBtn"><span id="themeIcon">🌙</span></button>
-  </div>
-</div>
-
-<div class="game-container" id="gameContainer">
-  <div class="bomb-progress-container" id="bombProgressContainer">
-    <div class="bomb-progress-bar" id="bombProgressBar"></div>
-  </div>
-
-  <div class="win-overlay" id="winOverlay">
-    <div class="win-emoji">🏆</div>
-    <div class="win-title">STAGE CLEAR</div>
-    <div class="win-sub" id="winSub">步数: 0</div>
-    <div class="win-buttons">
-      <button class="win-btn secondary" id="winRestartBtn">🔄 重玩</button>
-      <button class="win-btn" id="winNextBtn">✨ 下一关</button>
+<div class="app-container">
+    <div class="game-area">
+        <div class="header">
+            <h1 style="margin:0; font-weight:800;">Ω Cubic Mind</h1>
+            <p id="msg" style="margin:5px 0; font-size:12px; color:var(--danger); height:15px;"></p>
+        </div>
+        <div class="game-board" id="board"></div>
     </div>
-  </div>
 
-  <div class="game-grid">
-    <div id="grid"></div>
-  </div>
+    <div class="side-panel">
+        <div class="stat-card">
+            <div style="text-align:center">
+                <div style="font-size:10px; color:var(--text-sub)">LEVEL</div>
+                <div style="font-size:20px; font-weight:700" id="lv-val">1</div>
+            </div>
+            <div style="text-align:center">
+                <div style="font-size:10px; color:var(--text-sub)">MOVES</div>
+                <div style="font-size:20px; font-weight:700" id="mv-val">0</div>
+            </div>
+        </div>
 
-  <div class="game-stats-row">
-    <div class="stats-row">
-      <div class="stats-bar">
-        <div class="stat-pill"><div class="stat-label">步數</div><div class="stat-value" id="moveCount">0</div></div>
-        <div class="stat-pill"><div class="stat-label">完成</div><div class="stat-value green" id="doneCount">0 / <span id="totalBoxes">0</span></div></div>
-      </div>
-      <div class="timer-pill" id="timerPill">
-        <div class="timer-label">⏱️ 倒數</div>
-        <div class="timer-value" id="timerValue">--</div>
-      </div>
-      <div class="level-nav">
-        <button class="level-nav-btn" id="prevLevelBtn">◀</button>
-        <span class="level-nav-text" id="levelDisplay">Lv.1/<span id="totalLevelsSpan">12</span></span>
-        <button class="level-nav-btn" id="nextLevelBtn">▶</button>
-      </div>
+        <div class="controls">
+            <div class="btn" style="grid-area: u" onclick="move('ArrowUp')">▲</div>
+            <div class="btn" style="grid-area: l" onclick="move('ArrowLeft')">◀</div>
+            <div class="btn" style="grid-area: d" onclick="move('ArrowDown')">▼</div>
+            <div class="btn" style="grid-area: r" onclick="move('ArrowRight')">▶</div>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:20px;">
+            <button onclick="reset()" style="padding:10px 20px; border-radius:12px; border:none; background:var(--card);">重置</button>
+            <button onclick="nextLevel()" style="padding:10px 20px; border-radius:12px; border:none; background:var(--accent); color:white;">跳過</button>
+        </div>
     </div>
-  </div>
-
-  <div class="game-legend">
-    <div class="legend">
-      <div class="legend-item"><div class="legend-dot ld-player"></div><span>玩家</span></div>
-      <div class="legend-item"><div class="legend-dot ld-box"></div><span>箱子</span></div>
-      <div class="legend-item"><div class="legend-dot ld-done"></div><span>已归位</span></div>
-      <div class="legend-item"><div class="legend-dot ld-target"></div><span>目標點</span></div>
-      <div class="legend-item"><div class="legend-dot ld-portal"></div><span>傳送門</span></div>
-      <div class="legend-item"><div class="legend-dot ld-dash"></div><span>冲刺箱子(数字步数)</span></div>
-    </div>
-  </div>
-
-  <div class="game-controls">
-    <div class="controls-section">
-      <div class="dpad">
-        <div></div><button class="dpad-btn" id="btnUp" data-dir="up">▲</button><div></div>
-        <button class="dpad-btn" id="btnLeft" data-dir="left">◀</button><div class="center-empty"></div>
-        <button class="dpad-btn" id="btnRight" data-dir="right">▶</button>
-        <div></div><button class="dpad-btn" id="btnDown" data-dir="down">▼</button><div></div>
-      </div>
-      <div class="action-bar">
-        <button class="action-btn btn-restart" id="restartBtn">↩ 重来</button>
-        <button class="action-btn btn-hint" id="hintBtn">💡 提示</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="game-hint">
-    <div class="hint-bar" id="hintBar">✨ 点击提示按钮，显示下一步移动方向</div>
-  </div>
-
-  <div class="game-kbd">
-    <div class="kbd-hint">⌨️ 键盘方向键 &nbsp;|&nbsp; 滑动屏幕</div>
-  </div>
 </div>
 
 <script>
-// ==================== 12个关卡（第二关已修复为可解）====================
-// 地图编码：
-// 0:空地  1:墙  2:目标点  3:玩家  4:普通箱子  5:玩家在目标点  6:箱子在目标点
-// 7:数字箱子  8:数字箱子在目标点  9:传送门入口  10:传送门出口
-// 11:冲刺箱子(普通)  12:冲刺箱子在目标点
-const LEVELS = [
-  { // 关卡1 - 基础教学
-    map: [[1,1,1,1,1],[1,0,0,0,1],[1,3,4,2,1],[1,0,0,0,1],[1,1,1,1,1]],
-    hint: '向右推动箱子到目标点即可过关。',
-    timerStart: 30,
-    boxCounts: [],
-    dashSteps: [],
-    portals: []
-  },
-  { // 关卡2 - 修复版：必须利用传送门才能将箱子推到目标点（可解）
-    map: [
-      [1,1,1,1,1,1,1],
-      [1,0,0,0,2,0,1],
-      [1,0,1,1,0,0,1],
-      [1,3,7,9,10,0,1],
-      [1,0,0,0,0,0,1],
-      [1,1,1,1,1,1,1]
-    ],
-    hint: '数字箱子限推3次，向右推入传送门🌀，它会从出口⭕出现，然后向上推到目标点。',
-    timerStart: 30,
-    boxCounts: [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,3,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]],
-    dashSteps: [],
-    portals: [[3,3,3,4]]
-  },
-  { // 关卡3 - 普通+数字 + 双传送门串联
-    map: [
-      [1,1,1,1,1,1,1,1],
-      [1,0,0,2,0,0,0,1],
-      [1,0,4,0,9,0,0,1],
-      [1,0,0,3,0,10,0,1],
-      [1,0,0,0,0,7,2,1],
-      [1,1,1,1,1,1,1,1]
-    ],
-    hint: '普通箱子可直接推，数字箱子通过传送门绕过墙壁。',
-    timerStart: 30,
-    boxCounts: [[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,3,0,0],[0,0,0,0,0,0,0,0]],
-    dashSteps: [],
-    portals: [[2,4,3,5]]
-  },
-  { // 关卡4 - 冲刺箱子基础教学（红色箭头箱子）
-    map: [
-      [1,1,1,1,1,1,1],
-      [1,2,0,0,0,0,1],
-      [1,0,11,3,0,0,1],
-      [1,0,0,0,0,0,1],
-      [1,1,1,1,1,1,1]
-    ],
-    hint: '红色冲刺箱子！推动后它会沿直线滑行2格（箭头方向），直到步数用完或撞墙。',
-    timerStart: 30,
-    boxCounts: [],
-    dashSteps: [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,2,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]],
-    portals: []
-  },
-  { // 关卡5 - 冲刺箱子 + 传送门组合
-    map: [
-      [1,1,1,1,1,1,1],
-      [1,2,0,0,0,0,1],
-      [1,0,11,0,9,0,1],
-      [1,0,3,0,0,0,1],
-      [1,0,0,10,0,2,1],
-      [1,1,1,1,1,1,1]
-    ],
-    hint: '冲刺箱子（步数3）推入传送门🌀，从出口⭕出现后继续冲刺。',
-    timerStart: 30,
-    boxCounts: [],
-    dashSteps: [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,3,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]],
-    portals: [[2,4,4,3]]
-  },
-  { // 关卡6 - 双冲刺箱子竞速
-    map: [
-      [1,1,1,1,1,1,1,1],
-      [1,2,0,0,0,0,2,1],
-      [1,0,11,0,11,0,0,1],
-      [1,0,0,3,0,0,0,1],
-      [1,1,1,1,1,1,1,1]
-    ],
-    hint: '两个冲刺箱子（步数2和3），规划路线让它们同时到位。',
-    timerStart: 25,
-    boxCounts: [],
-    dashSteps: [
-      [0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
-      [0,0,2,0,3,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]
-    ],
-    portals: []
-  },
-  { // 关卡7 - 极限1次 + 传送门救急
-    map: [
-      [1,1,1,1,1,1],
-      [1,2,0,0,0,1],
-      [1,7,3,9,10,1],
-      [1,0,0,0,0,1],
-      [1,1,1,1,1,1]
-    ],
-    hint: '数字箱子仅剩1次！必须直接推到目标，但可以借助传送门调整位置。',
-    timerStart: 10,
-    boxCounts: [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,1,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]],
-    dashSteps: [],
-    portals: [[2,3,2,4]]
-  },
-  { // 关卡8 - 双数字2+2 + 传送门捷径
-    map: [
-      [1,1,1,1,1,1,1,1],
-      [1,2,0,0,0,0,2,1],
-      [1,0,7,0,9,0,7,1],
-      [1,0,0,3,0,0,0,1],
-      [1,0,0,10,0,0,0,1],
-      [1,1,1,1,1,1,1,1]
-    ],
-    hint: '两个数字箱子各2次，利用传送门快速抵达目标。',
-    timerStart: 10,
-    boxCounts: [[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,2,0,0,0,2,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]],
-    dashSteps: [],
-    portals: [[2,4,4,3]]
-  },
-  { // 关卡9 - 冲刺箱子+数字箱子混合
-    map: [
-      [1,1,1,1,1,1,1,1],
-      [1,2,0,0,0,0,2,1],
-      [1,0,11,0,7,0,11,1],
-      [1,0,0,3,0,0,0,1],
-      [1,0,0,0,0,0,0,1],
-      [1,1,1,1,1,1,1,1]
-    ],
-    hint: '左侧冲刺箱子(步数3)和右侧数字箱子(3次)，协同完成目标。',
-    timerStart: 20,
-    boxCounts: [[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,3,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]],
-    dashSteps: [
-      [0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],
-      [0,0,3,0,0,0,2,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]
-    ],
-    portals: []
-  },
-  { // 关卡10 - 终极挑战：冲刺+数字+传送门
-    map: [
-      [1,1,1,1,1,1,1,1,1],
-      [1,2,0,0,0,0,2,0,1],
-      [1,0,11,0,9,0,7,0,1],
-      [1,0,0,3,0,0,0,0,1],
-      [1,0,0,0,10,0,0,0,1],
-      [1,0,7,0,0,0,2,0,1],
-      [1,1,1,1,1,1,1,1,1]
-    ],
-    hint: '冲刺箱子(步数2)、数字箱子(3次和2次)、传送门，10秒极限！',
-    timerStart: 10,
-    boxCounts: [
-      [0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,2,0,0],[0,0,0,0,0,0,0,0,0],
-      [0,0,2,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]
-    ],
-    dashSteps: [
-      [0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],
-      [0,0,2,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]
-    ],
-    portals: [[2,4,4,4]]
-  },
-  { // 关卡11 - 超长冲刺箱子演示
-    map: [
-      [1,1,1,1,1,1,1,1],
-      [1,0,0,0,2,0,0,1],
-      [1,0,11,3,0,0,0,1],
-      [1,0,0,0,0,0,0,1],
-      [1,1,1,1,1,1,1,1]
-    ],
-    hint: '冲刺箱子步数5，会直线滑动5格撞到目标点停下。',
-    timerStart: 25,
-    boxCounts: [],
-    dashSteps: [[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,5,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]],
-    portals: []
-  },
-  { // 关卡12 - 冲刺+数字+传送门终极考验
-    map: [
-      [1,1,1,1,1,1,1,1,1],
-      [1,2,0,0,0,0,2,0,1],
-      [1,0,11,0,9,0,7,0,1],
-      [1,0,0,3,0,0,0,0,1],
-      [1,0,0,0,10,0,0,0,1],
-      [1,0,11,0,0,0,2,0,1],
-      [1,1,1,1,1,1,1,1,1]
-    ],
-    hint: '两个冲刺箱子(步数3/2)，一个数字箱子(2次)，传送门，10秒终极挑战！',
-    timerStart: 10,
-    boxCounts: [
-      [0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,2,0,0],[0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]
-    ],
-    dashSteps: [
-      [0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],
-      [0,0,3,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0],
-      [0,0,0,0,0,0,0,0,0],[0,0,2,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0]
-    ],
-    portals: [[2,4,4,4]]
-  }
-];
+    const SIZE = 10;
+    let gameState = [], levelBase = [], moves = 0;
+    let portals = [];
 
-let currentLevel = 0;
-let baseMap = [], gameState = [];
-let boxCounts = [];
-let dashSteps = [];
-let portalPairs = [];
-let moves = 0;
-let gameActive = true;
-let winTriggered = false;
-let audioCtx = null;
-let dpadTimer = null, dpadIntervalId = null, currentDirKey = null;
-let bombTimerInterval = null;
-let bombTimerSeconds = 0;
-let bombTotalSeconds = 0;
-let highFreqInterval = null;
-let currentArrow = null;
-
-// ---------- 特效 ----------
-function addRippleEffect(tile) { if(!tile)return; const d=document.createElement('div'); d.className='ripple-effect'; tile.style.position='relative'; tile.appendChild(d); setTimeout(()=>d.remove(),400); }
-function addFlashEffect(tile) { if(!tile)return; const d=document.createElement('div'); d.className='flash-effect'; tile.style.position='relative'; tile.appendChild(d); setTimeout(()=>d.remove(),200); }
-function showBoxExplosion(row, col) {
-  const tile = getTile(row, col);
-  if(!tile) return;
-  const explosion = document.createElement('div');
-  explosion.className = 'box-explosion';
-  tile.style.position = 'relative';
-  tile.appendChild(explosion);
-  setTimeout(() => explosion.remove(), 500);
-  const container = document.getElementById('gameContainer');
-  container.classList.add('shake');
-  setTimeout(() => container.classList.remove('shake'), 200);
-}
-function triggerExplosion() {
-  const container = document.getElementById('gameContainer');
-  const explosion = document.createElement('div');
-  explosion.className = 'bomb-explosion';
-  container.appendChild(explosion);
-  setTimeout(() => explosion.remove(), 600);
-  container.classList.add('shake');
-  setTimeout(() => container.classList.remove('shake'), 300);
-  playSound('explosion');
-}
-function triggerConfetti() {
-  const count=180;
-  const defaults={origin:{y:0.6},startVelocity:18,spread:60,ticks:100,colors:['#5856d6','#32ade6','#ff9500','#30d158']};
-  function fire(ratio,opts){ confetti(Object.assign({},defaults,opts,{particleCount:Math.floor(count*ratio)})); }
-  fire(0.25,{spread:24}); fire(0.2,{spread:42}); fire(0.35,{spread:65}); fire(0.1,{spread:85});
-}
-if(typeof confetti==='undefined'){ const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/canvas-confetti@1'; document.head.appendChild(s); window.confetti=()=>{}; s.onload=()=>{ window.confetti=canvasConfetti; }; }
-
-// ---------- 音频 ----------
-function getAudio(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
-function playSound(type){
-  if(!gameActive && type!=='win' && type!=='reset' && type!=='explosion' && type!=='tick' && type!=='portal') return;
-  try{
-    const ctx=getAudio(); if(ctx.state==='suspended') ctx.resume();
-    const osc=ctx.createOscillator(), gain=ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    const now=ctx.currentTime;
-    if(type==='move'){ osc.type='sine'; osc.frequency.setValueAtTime(180,now); osc.frequency.exponentialRampToValueAtTime(60,now+0.08); gain.gain.setValueAtTime(0.06,now); gain.gain.linearRampToValueAtTime(0,now+0.08); }
-    else if(type==='push'){ osc.type='triangle'; osc.frequency.setValueAtTime(280,now); osc.frequency.linearRampToValueAtTime(160,now+0.12); gain.gain.setValueAtTime(0.05,now); gain.gain.linearRampToValueAtTime(0,now+0.15); }
-    else if(type==='success'){ osc.type='sine'; osc.frequency.setValueAtTime(523,now); osc.frequency.setValueAtTime(659,now+0.1); osc.frequency.setValueAtTime(784,now+0.2); gain.gain.setValueAtTime(0.08,now); gain.gain.linearRampToValueAtTime(0,now+0.4); }
-    else if(type==='win'){ osc.type='sine'; osc.frequency.setValueAtTime(523,now); osc.frequency.setValueAtTime(659,now+0.12); osc.frequency.setValueAtTime(784,now+0.24); osc.frequency.setValueAtTime(1047,now+0.36); gain.gain.setValueAtTime(0.1,now); gain.gain.linearRampToValueAtTime(0,now+0.6); }
-    else if(type==='reset'){ osc.type='sawtooth'; osc.frequency.setValueAtTime(200,now); osc.frequency.exponentialRampToValueAtTime(80,now+0.1); gain.gain.setValueAtTime(0.05,now); gain.gain.linearRampToValueAtTime(0,now+0.12); }
-    else if(type==='explosion'){ 
-      osc.type='sawtooth'; osc.frequency.setValueAtTime(80,now); osc.frequency.exponentialRampToValueAtTime(40,now+0.3);
-      gain.gain.setValueAtTime(0.15,now); gain.gain.linearRampToValueAtTime(0,now+0.4);
-      const noise = ctx.createBufferSource();
-      const bufferSize = 4096;
-      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for(let i=0;i<bufferSize;i++) data[i]=Math.random()*2-1;
-      noise.buffer=buffer; noise.connect(gain); noise.start(); noise.stop(now+0.4);
+    function toggleTheme() {
+        const d = document.documentElement;
+        d.setAttribute('data-theme', d.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
     }
-    else if(type==='tick'){ 
-      osc.type='sine'; osc.frequency.setValueAtTime(1320,now); osc.frequency.exponentialRampToValueAtTime(880,now+0.03);
-      gain.gain.setValueAtTime(0.04,now); gain.gain.linearRampToValueAtTime(0,now+0.07);
-    }
-    else if(type==='portal'){
-      osc.type='sine'; osc.frequency.setValueAtTime(880,now); osc.frequency.exponentialRampToValueAtTime(440,now+0.1);
-      gain.gain.setValueAtTime(0.1,now); gain.gain.linearRampToValueAtTime(0,now+0.2);
-    }
-    osc.start(); osc.stop(now+0.6);
-  }catch(e){}
-}
 
-// 传送门逻辑
-function applyPortal(row, col) {
-  for(let p of portalPairs) {
-    if(row === p[0] && col === p[1]) {
-      const exitRow = p[2], exitCol = p[3];
-      const targetCell = gameState[exitRow][exitCol];
-      if(targetCell === 0 || targetCell === 2) {
-        playSound('portal');
-        const entryTile = getTile(row, col);
-        if(entryTile) addFlashEffect(entryTile);
-        const movingValue = gameState[row][col];
-        const isBox = (movingValue === 4 || movingValue === 6 || movingValue === 7 || movingValue === 8 || movingValue === 11 || movingValue === 12);
-        let boxCountVal = 0, dashVal = 0;
-        if(isBox) {
-          if(boxCounts[row][col] > 0) boxCountVal = boxCounts[row][col];
-          if(dashSteps[row][col] > 0) dashVal = dashSteps[row][col];
+    // 實體類型定義
+    // 0:空地, 1:牆, 2:目標
+    // 物件型態: {type: 'player'|'box', sub: 'white'|'gray'|'yellow'|'red'|'purple', power: n, dir: 'up'|...}
+
+    function initLevel() {
+        moves = 0;
+        document.getElementById('mv-val').innerText = moves;
+        document.getElementById('msg').innerText = '';
+        
+        levelBase = Array.from({length: SIZE}, () => Array(SIZE).fill(0));
+        gameState = Array.from({length: SIZE}, () => Array(SIZE).fill(null));
+        
+        // 圍牆
+        for(let i=0; i<SIZE; i++) { levelBase[0][i]=levelBase[9][i]=levelBase[i][0]=levelBase[i][9]=1; }
+        
+        // 放置目標
+        levelBase[2][2] = 2; levelBase[7][7] = 2;
+
+        // 放置箱子與玩家
+        gameState[5][5] = {type: 'player'};
+        gameState[3][3] = {type: 'box', sub: 'white'};
+        gameState[4][4] = {type: 'box', sub: 'gray'}; // 不可移動
+        gameState[6][6] = {type: 'box', sub: 'yellow', power: 10}; // 次數
+        gameState[2][5] = {type: 'box', sub: 'red', dir: 'ArrowUp'}; // 單向
+        
+        // 傳送門
+        portals = [{r:1, c:1, id:0}, {r:8, c:8, id:1}];
+        gameState[1][1] = {type: 'box', sub: 'purple', to: 1};
+        gameState[8][8] = {type: 'box', sub: 'purple', to: 0};
+
+        render();
+    }
+
+    function render() {
+        const board = document.getElementById('board');
+        board.innerHTML = '';
+        
+        for(let r=0; r<SIZE; r++) {
+            for(let c=0; c<SIZE; c++) {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                const base = levelBase[r][c];
+                const obj = gameState[r][c];
+
+                if(base === 1) tile.classList.add('wall');
+                if(base === 2) tile.classList.add('target');
+
+                if(obj) {
+                    if(obj.type === 'player') tile.classList.add('player');
+                    else {
+                        tile.classList.add(`box-${obj.sub}`);
+                        if(obj.sub === 'yellow') tile.innerText = obj.power;
+                        if(obj.sub === 'red') tile.classList.add(`dir-${obj.dir.replace('Arrow','').toLowerCase()}`);
+                        if(base === 2) tile.classList.add('on-target');
+                        
+                        // 死角檢查
+                        if(obj.sub !== 'gray' && base !== 2 && isStuck(r, c)) {
+                            tile.classList.add('stuck-warning');
+                            document.getElementById('msg').innerText = "警告：箱子陷入無解死角";
+                        }
+                    }
+                }
+                board.appendChild(tile);
+            }
         }
-        gameState[row][col] = baseMap[row][col] === 2 ? 2 : 0;
-        let newValue = movingValue;
-        if(isBox) {
-          const isTargetSpot = baseMap[exitRow][exitCol] === 2;
-          if(isTargetSpot) {
-            if(movingValue === 4) newValue = 6;
-            else if(movingValue === 7) newValue = 8;
-            else if(movingValue === 11) newValue = 12;
-            else newValue = movingValue;
-          } else {
-            if(movingValue === 6) newValue = 4;
-            else if(movingValue === 8) newValue = 7;
-            else if(movingValue === 12) newValue = 11;
-            else newValue = movingValue;
-          }
-        } else {
-          newValue = (baseMap[exitRow][exitCol] === 2) ? 5 : 3;
+    }
+
+    function move(dir) {
+        const d = { ArrowUp: [-1,0], ArrowDown: [1,0], ArrowLeft: [0,-1], ArrowRight: [0,1] };
+        const [dr, dc] = d[dir];
+        let pr, pc;
+        
+        // 找玩家
+        for(let r=0; r<SIZE; r++) for(let c=0; c<SIZE; c++) if(gameState[r][c]?.type === 'player') { pr=r; pc=c; }
+
+        const nr = pr + dr, nc = pc + dc;
+        const target = gameState[nr][nc];
+        const base = levelBase[nr][nc];
+
+        if(base === 1) return; // 牆壁
+
+        // 1. 移動到空地
+        if(!target) {
+            gameState[nr][nc] = gameState[pr][pc];
+            gameState[pr][pc] = null;
+            moves++;
+        } 
+        // 2. 傳送門邏輯
+        else if(target.sub === 'purple') {
+            const dest = portals[target.to];
+            if(!gameState[dest.r][dest.c]) {
+                gameState[dest.r][dest.c] = gameState[pr][pc];
+                gameState[pr][pc] = null;
+                moves++;
+            }
         }
-        gameState[exitRow][exitCol] = newValue;
-        if(isBox) {
-          if(boxCountVal > 0) { boxCounts[exitRow][exitCol] = boxCountVal; boxCounts[row][col] = 0; }
-          if(dashVal > 0) { dashSteps[exitRow][exitCol] = dashVal; dashSteps[row][col] = 0; }
+        // 3. 推箱子邏輯
+        else if(target.type === 'box') {
+            if(target.sub === 'gray') return; // 灰色不能推
+            if(target.sub === 'red' && target.dir !== dir) return; // 紅色方向不符
+            if(target.sub === 'yellow' && target.power <= 0) return; // 黃色次數用盡
+
+            const nnr = nr + dr, nnc = nc + dc;
+            if(levelBase[nnr][nnc] !== 1 && !gameState[nnr][nnc]) {
+                // 如果是黃色扣次數
+                if(target.sub === 'yellow') target.power--;
+                
+                gameState[nnr][nnc] = target;
+                gameState[nr][nc] = gameState[pr][pc];
+                gameState[pr][pc] = null;
+                moves++;
+            }
         }
-        const exitTile = getTile(exitRow, exitCol);
-        if(exitTile) addRippleEffect(exitTile);
-        return true;
-      }
+        
+        document.getElementById('mv-val').innerText = moves;
+        render();
+        checkWin();
     }
-  }
-  return false;
-}
 
-// 冲刺箱子直线滑行
-function dashBoxSlide(row, col, dr, dc, steps) {
-  let remaining = steps;
-  let currentRow = row, currentCol = col;
-  while(remaining > 0) {
-    const nextRow = currentRow + dr, nextCol = currentCol + dc;
-    if(nextRow<0 || nextRow>=gameState.length || nextCol<0 || nextCol>=gameState[0].length) break;
-    const target = gameState[nextRow][nextCol];
-    if(target === 0 || target === 2) {
-      const isTargetSpot = baseMap[nextRow][nextCol] === 2;
-      const oldValue = gameState[currentRow][currentCol];
-      let newValue = oldValue;
-      if(oldValue === 11) newValue = isTargetSpot ? 12 : 11;
-      else if(oldValue === 12) newValue = isTargetSpot ? 12 : 11;
-      gameState[nextRow][nextCol] = newValue;
-      gameState[currentRow][currentCol] = baseMap[currentRow][currentCol] === 2 ? 2 : 0;
-      if(dashSteps[currentRow][currentCol] > 0) {
-        dashSteps[nextRow][nextCol] = dashSteps[currentRow][currentCol] - 1;
-        dashSteps[currentRow][currentCol] = 0;
-        remaining = dashSteps[nextRow][nextCol];
-      } else {
-        dashSteps[nextRow][nextCol] = remaining - 1;
-        remaining--;
-      }
-      currentRow = nextRow; currentCol = nextCol;
-      if(baseMap[currentRow][currentCol] === 9) {
-        const oldRow = currentRow, oldCol = currentCol;
-        if(applyPortal(currentRow, currentCol)) {
-          let newPos = null;
-          for(let r=0; r<gameState.length && !newPos; r++)
-            for(let c=0; c<gameState[0].length && !newPos; c++)
-              if((gameState[r][c] === 11 || gameState[r][c] === 12) && (r!==oldRow || c!==oldCol)) newPos = [r,c];
-          if(newPos) {
-            currentRow = newPos[0]; currentCol = newPos[1];
-            remaining = dashSteps[currentRow][currentCol];
-          } else break;
+    function isStuck(r, c) {
+        const u = levelBase[r-1][c] === 1 || gameState[r-1][c]?.sub === 'gray';
+        const d = levelBase[r+1][c] === 1 || gameState[r+1][c]?.sub === 'gray';
+        const l = levelBase[r][c-1] === 1 || gameState[r][c-1]?.sub === 'gray';
+        const w = levelBase[r][c+1] === 1 || gameState[r][c+1]?.sub === 'gray';
+        return (u || d) && (l || w);
+    }
+
+    function checkWin() {
+        let win = true;
+        for(let r=0; r<SIZE; r++) {
+            for(let c=0; c<SIZE; c++) {
+                if(levelBase[r][c] === 2 && gameState[r][c]?.type !== 'box') win = false;
+            }
         }
-      }
-    } else break;
-  }
-  return true;
-}
-
-// ---------- 炸弹计时器 ----------
-function startBombTimer(seconds) {
-  stopBombTimer();
-  bombTimerSeconds = seconds;
-  bombTotalSeconds = seconds;
-  updateBombUI();
-  bombTimerInterval = setInterval(() => {
-    if(!gameActive || winTriggered) return;
-    if(bombTimerSeconds <= 1) {
-      clearInterval(bombTimerInterval); bombTimerInterval = null;
-      if(highFreqInterval) clearInterval(highFreqInterval); highFreqInterval = null;
-      triggerExplosion();
-      playSound('explosion');
-      initGame(currentLevel);
-    } else {
-      bombTimerSeconds--;
-      updateBombUI();
-      if(bombTimerSeconds <= 10) {
-        if(!highFreqInterval) {
-          highFreqInterval = setInterval(() => {
-            if(gameActive && !winTriggered && bombTimerSeconds <= 10 && bombTimerSeconds > 0) playSound('tick');
-            else if(bombTimerSeconds <= 0 || winTriggered) { if(highFreqInterval) clearInterval(highFreqInterval); }
-          }, 500);
+        if(win && moves > 0) {
+            setTimeout(() => { alert("恭喜通過 Ω 級測試！"); initLevel(); }, 300);
         }
-      } else {
-        if(!highFreqInterval) {
-          highFreqInterval = setInterval(() => {
-            if(gameActive && !winTriggered && bombTimerSeconds > 0) playSound('tick');
-          }, 1000);
+    }
+
+    function reset() { initLevel(); }
+    function nextLevel() { initLevel(); }
+
+    window.addEventListener('keydown', (e) => {
+        if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+            e.preventDefault(); move(e.key);
         }
-      }
-    }
-  }, 1000);
-}
-function stopBombTimer() {
-  if(bombTimerInterval) { clearInterval(bombTimerInterval); bombTimerInterval = null; }
-  if(highFreqInterval) { clearInterval(highFreqInterval); highFreqInterval = null; }
-  const container = document.getElementById('gameContainer');
-  container.classList.remove('shake-continuous');
-  const progressBar = document.getElementById('bombProgressBar');
-  if(progressBar) progressBar.classList.remove('critical');
-}
-function updateBombUI() {
-  const timerDiv = document.getElementById('timerPill');
-  const timerValue = document.getElementById('timerValue');
-  const progressContainer = document.getElementById('bombProgressContainer');
-  const progressBar = document.getElementById('bombProgressBar');
-  if(bombTotalSeconds > 0) {
-    timerDiv.style.display = 'flex';
-    timerDiv.classList.add('bomb-active');
-    timerValue.textContent = bombTimerSeconds;
-    if(bombTimerSeconds <= 5) timerValue.classList.add('warning');
-    else timerValue.classList.remove('warning');
-    progressContainer.style.display = 'block';
-    const percent = (bombTimerSeconds / bombTotalSeconds) * 100;
-    progressBar.style.width = `${percent}%`;
-    if(percent <= 20) progressBar.classList.add('critical');
-    else progressBar.classList.remove('critical');
-    const container = document.getElementById('gameContainer');
-    if(bombTimerSeconds <= 10 && bombTimerSeconds > 0) {
-      if(!container.classList.contains('shake-continuous')) container.classList.add('shake-continuous');
-    } else {
-      container.classList.remove('shake-continuous');
-    }
-  } else {
-    timerDiv.style.display = 'none';
-    progressContainer.style.display = 'none';
-    document.getElementById('gameContainer').classList.remove('shake-continuous');
-  }
-}
+    });
 
-// ---------- 游戏核心 ----------
-function initGame(levelIdx) {
-  stopBombTimer();
-  currentLevel = Math.min(LEVELS.length-1, Math.max(0, levelIdx));
-  const ld = LEVELS[currentLevel];
-  baseMap = ld.map.map(row => [...row]);
-  gameState = ld.map.map(row => [...row]);
-  const rows = gameState.length, cols = gameState[0].length;
-  boxCounts = Array(rows).fill().map(() => Array(cols).fill(0));
-  dashSteps = Array(rows).fill().map(() => Array(cols).fill(0));
-  if(ld.boxCounts && ld.boxCounts.length) {
-    for(let r=0; r<rows; r++) for(let c=0; c<cols; c++) if(ld.boxCounts[r] && ld.boxCounts[r][c]) boxCounts[r][c] = ld.boxCounts[r][c];
-  }
-  if(ld.dashSteps && ld.dashSteps.length) {
-    for(let r=0; r<rows; r++) for(let c=0; c<cols; c++) if(ld.dashSteps[r] && ld.dashSteps[r][c]) dashSteps[r][c] = ld.dashSteps[r][c];
-  }
-  portalPairs = [];
-  if(ld.portals && ld.portals.length) portalPairs = ld.portals;
-  moves = 0;
-  gameActive = true;
-  winTriggered = false;
-  document.getElementById('winOverlay').classList.remove('show');
-  document.getElementById('hintBar').classList.remove('show');
-  updateLevelDisplay();
-  updateStatsAndRender();
-  playSound('reset');
-  startBombTimer(ld.timerStart);
-}
-function updateStatsAndRender() {
-  renderGrid();
-  document.getElementById('moveCount').textContent = moves;
-  const {total, done} = countBoxes();
-  document.getElementById('totalBoxes').textContent = total;
-  document.getElementById('doneCount').innerHTML = `${done} / <span id="totalBoxes">${total}</span>`;
-  if(gameActive && !winTriggered && !gameState.flat().some(cell => cell === 4 || cell === 7 || cell === 11)) {
-    triggerWin();
-  }
-}
-function countBoxes() {
-  let total = 0, done = 0;
-  for(let r=0; r<gameState.length; r++) {
-    for(let c=0; c<gameState[0].length; c++) {
-      const v = gameState[r][c];
-      if(v === 4 || v === 7 || v === 11) total++;
-      if(v === 6 || v === 8 || v === 12) { total++; done++; }
-    }
-  }
-  return {total, done};
-}
-function renderGrid() {
-  const g = document.getElementById('grid'); g.innerHTML = '';
-  const rows = gameState.length, cols = gameState[0].length;
-  g.style.gridTemplateColumns = `repeat(${cols}, var(--tile-size))`;
-  for(let r=0; r<rows; r++) {
-    for(let c=0; c<cols; c++) {
-      const tile = document.createElement('div');
-      tile.className = 'tile';
-      const cell = gameState[r][c];
-      const base = baseMap[r][c];
-      if(base === 9) tile.classList.add('portal-entry');
-      if(base === 10) tile.classList.add('portal-exit');
-      if(cell === 1) tile.classList.add('wall');
-      if(base === 2) tile.classList.add('target');
-      if(cell === 3 || cell === 5) tile.classList.add('player');
-      if(cell === 4 || cell === 6 || cell === 7 || cell === 8) {
-        tile.classList.add('box');
-        if(cell === 6 || cell === 8) tile.classList.add('box-on-target');
-      }
-      if(cell === 11 || cell === 12) {
-        tile.classList.add('dash-box');
-        if(cell === 12) tile.classList.add('box-on-target');
-      }
-      if((cell === 7 || cell === 8) && boxCounts[r][c] > 0) {
-        const numSpan = document.createElement('span');
-        numSpan.className = 'box-number';
-        numSpan.textContent = boxCounts[r][c];
-        tile.appendChild(numSpan);
-      }
-      if((cell === 11 || cell === 12) && dashSteps[r][c] > 0) {
-        const dashSpan = document.createElement('span');
-        dashSpan.className = 'dash-number';
-        dashSpan.textContent = dashSteps[r][c];
-        tile.appendChild(dashSpan);
-      }
-      tile.dataset.row = r; tile.dataset.col = c;
-      g.appendChild(tile);
-    }
-  }
-}
-function getTile(r,c) { const idx = r * gameState[0].length + c; return document.querySelectorAll('#grid .tile')[idx]; }
-function triggerWin() {
-  if(winTriggered) return;
-  winTriggered = true; gameActive = false;
-  stopBombTimer();
-  playSound('win'); triggerConfetti();
-  document.getElementById('winSub').textContent = `✨ 共 ${moves} 步 ✨`;
-  const nextBtn = document.getElementById('winNextBtn');
-  nextBtn.textContent = (currentLevel+1 >= LEVELS.length) ? '🏁 通关完结' : '⏩ 下一关';
-  document.getElementById('winOverlay').classList.add('show');
-}
-
-// 移动逻辑（支持冲刺箱子）
-function tryMove(dr, dc) {
-  if(!gameActive) return false;
-  let pr = -1, pc = -1;
-  for(let r=0; r<gameState.length; r++) {
-    for(let c=0; c<gameState[0].length; c++) {
-      if(gameState[r][c] === 3 || gameState[r][c] === 5) { pr=r; pc=c; break; }
-    }
-    if(pr !== -1) break;
-  }
-  if(pr === -1) return false;
-  const nr = pr+dr, nc = pc+dc;
-  if(nr<0 || nr>=gameState.length || nc<0 || nc>=gameState[0].length) return false;
-  const target = gameState[nr][nc];
-  const leavingBase = baseMap[pr][pc] === 2 ? 2 : 0;
-  const playerTile = getTile(pr,pc); if(playerTile) addFlashEffect(playerTile);
-  if(target === 0 || target === 2 || target === 9 || target === 10) {
-    gameState[pr][pc] = leavingBase;
-    gameState[nr][nc] = (baseMap[nr][nc] === 2) ? 5 : 3;
-    moves++;
-    playSound('move');
-    if(baseMap[nr][nc] === 9 && applyPortal(nr, nc)) {}
-    const newTile = getTile(nr,nc); if(newTile) addRippleEffect(newTile);
-    updateStatsAndRender();
-    return true;
-  }
-  else if(target === 4 || target === 6 || target === 7 || target === 8 || target === 11 || target === 12) {
-    const nnr = nr+dr, nnc = nc+dc;
-    if(nnr<0 || nnr>=gameState.length || nnc<0 || nnc>=gameState[0].length) return false;
-    const beyond = gameState[nnr][nnc];
-    if(beyond === 0 || beyond === 2 || beyond === 9 || beyond === 10) {
-      const isTargetSpot = baseMap[nnr][nnc] === 2;
-      const isNumberBox = (target === 7 || target === 8);
-      const isDashBox = (target === 11 || target === 12);
-      let newBoxValue = isTargetSpot ? 6 : 4;
-      let newBoxCount = 0;
-      let shouldDestroy = false;
-      if(isNumberBox) {
-        const curCount = boxCounts[nr][nc];
-        if(curCount > 1) {
-          newBoxCount = curCount - 1;
-          newBoxValue = isTargetSpot ? 8 : 7;
-        } else {
-          shouldDestroy = true;
-          newBoxValue = 1;
-          newBoxCount = 0;
-          showBoxExplosion(nr, nc);
-          playSound('explosion');
-        }
-      } else if(isDashBox) {
-        const steps = dashSteps[nr][nc];
-        if(steps > 0) {
-          gameState[pr][pc] = leavingBase;
-          gameState[nr][nc] = (baseMap[nr][nc] === 2) ? 5 : 3;
-          moves++;
-          playSound('push');
-          dashBoxSlide(nr, nc, dr, dc, steps);
-          updateStatsAndRender();
-          return true;
-        } else {
-          newBoxValue = isTargetSpot ? 6 : 4;
-          newBoxCount = 0;
-        }
-      }
-      if(shouldDestroy) {
-        gameState[nnr][nnc] = 1;
-        boxCounts[nnr][nnc] = 0;
-      } else {
-        gameState[nnr][nnc] = newBoxValue;
-        if(isNumberBox) boxCounts[nnr][nnc] = newBoxCount;
-      }
-      gameState[nr][nc] = (baseMap[nr][nc] === 2) ? 5 : 3;
-      gameState[pr][pc] = leavingBase;
-      if(isNumberBox && !shouldDestroy) boxCounts[nr][nc] = 0;
-      moves++;
-      playSound(isNumberBox ? (shouldDestroy ? 'explosion' : 'push') : (isTargetSpot ? 'success' : 'push'));
-      if(baseMap[nnr][nnc] === 9 && applyPortal(nnr, nnc)) {}
-      const boxTile = getTile(nr,nc); if(boxTile) addRippleEffect(boxTile);
-      const newPosTile = getTile(nnr,nnc); if(newPosTile) addFlashEffect(newPosTile);
-      updateStatsAndRender();
-      return true;
-    }
-  }
-  return false;
-}
-
-// 智能提示系统
-function showArrowHint() {
-  if(currentArrow) currentArrow.remove();
-  let pr = -1, pc = -1;
-  for(let r=0; r<gameState.length; r++) {
-    for(let c=0; c<gameState[0].length; c++) {
-      if(gameState[r][c] === 3 || gameState[r][c] === 5) { pr=r; pc=c; break; }
-    }
-    if(pr !== -1) break;
-  }
-  if(pr === -1) return;
-  const dirs = [[-1,0,'↑'],[1,0,'↓'],[0,-1,'←'],[0,1,'→']];
-  for(let [dr, dc, arrow] of dirs) {
-    const nr = pr + dr, nc = pc + dc;
-    if(nr<0 || nr>=gameState.length || nc<0 || nc>=gameState[0].length) continue;
-    const target = gameState[nr][nc];
-    if(target === 4 || target === 6 || target === 7 || target === 8 || target === 11 || target === 12) {
-      const nnr = nr + dr, nnc = nc + dc;
-      if(nnr>=0 && nnr<gameState.length && nnc>=0 && nnc<gameState[0].length) {
-        const beyond = gameState[nnr][nnc];
-        if(beyond === 0 || beyond === 2 || beyond === 9 || beyond === 10) {
-          const tile = getTile(pr, pc);
-          if(tile) {
-            currentArrow = document.createElement('div');
-            currentArrow.className = 'hint-arrow';
-            currentArrow.textContent = arrow;
-            tile.style.position = 'relative';
-            tile.appendChild(currentArrow);
-            setTimeout(() => { if(currentArrow) currentArrow.remove(); currentArrow = null; }, 2000);
-            const bar = document.getElementById('hintBar');
-            bar.textContent = `💡 向${arrow}推动箱子！`;
-            bar.classList.add('show');
-            setTimeout(() => bar.classList.remove('show'), 3000);
-            return;
-          }
-        }
-      }
-    }
-  }
-  for(let [dr, dc, arrow] of dirs) {
-    const nr = pr + dr, nc = pc + dc;
-    if(nr>=0 && nr<gameState.length && nc>=0 && nc<gameState[0].length) {
-      const target = gameState[nr][nc];
-      if(target === 0 || target === 2 || target === 9 || target === 10) {
-        const tile = getTile(pr, pc);
-        if(tile) {
-          currentArrow = document.createElement('div');
-          currentArrow.className = 'hint-arrow';
-          currentArrow.textContent = arrow;
-          tile.style.position = 'relative';
-          tile.appendChild(currentArrow);
-          setTimeout(() => { if(currentArrow) currentArrow.remove(); currentArrow = null; }, 2000);
-          const bar = document.getElementById('hintBar');
-          bar.textContent = `💡 向${arrow}移动`;
-          bar.classList.add('show');
-          setTimeout(() => bar.classList.remove('show'), 3000);
-          return;
-        }
-      }
-    }
-  }
-  const bar = document.getElementById('hintBar');
-  bar.textContent = '⚠️ 当前无有效移动方向，请重置关卡';
-  bar.classList.add('show');
-  setTimeout(() => bar.classList.remove('show'), 3000);
-}
-
-// 关卡切换
-function changeLevel(delta) {
-  if(winTriggered) document.getElementById('winOverlay').classList.remove('show');
-  stopBombTimer();
-  let newLevel = currentLevel + delta;
-  if(newLevel < 0) newLevel = 0;
-  if(newLevel >= LEVELS.length) newLevel = LEVELS.length - 1;
-  if(newLevel === currentLevel && delta !== 0) return;
-  currentLevel = newLevel; initGame(currentLevel);
-}
-function updateLevelDisplay() {
-  document.getElementById('levelDisplay').innerHTML = `Lv.${currentLevel+1}/<span id="totalLevelsSpan">${LEVELS.length}</span>`;
-  document.getElementById('totalLevelsSpan').textContent = LEVELS.length;
-}
-function toggleHint() { showArrowHint(); }
-function restartGame() { stopBombTimer(); initGame(currentLevel); }
-function nextLevelAction() { if(currentLevel+1 < LEVELS.length) changeLevel(1); else { alert('🎉 恭喜通关！回到第一关继续挑战 🎉'); changeLevel(-currentLevel); } }
-function prevLevelAction() { changeLevel(-1); }
-
-// 输入控制
-const dirMap = {up:[-1,0], down:[1,0], left:[0,-1], right:[0,1]};
-function startRepeat(dir){
-  if(dpadTimer) clearTimeout(dpadTimer);
-  if(dpadIntervalId) clearInterval(dpadIntervalId);
-  currentDirKey = dir;
-  dpadTimer = setTimeout(() => { dpadIntervalId = setInterval(() => { if(currentDirKey) tryMove(...dirMap[currentDirKey]); }, 120); }, 350);
-}
-function stopRepeat() {
-  if(dpadTimer) { clearTimeout(dpadTimer); dpadTimer = null; }
-  if(dpadIntervalId) { clearInterval(dpadIntervalId); dpadIntervalId = null; }
-  currentDirKey = null;
-}
-function handleDpadStart(e) {
-  e.preventDefault(); const btn = e.currentTarget, dir = btn.dataset.dir;
-  btn.classList.add('pressed'); if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-  tryMove(...dirMap[dir]); startRepeat(dir);
-}
-function handleDpadEnd(e) { e.currentTarget.classList.remove('pressed'); stopRepeat(); }
-function handleDpadCancel(e) { if(e.currentTarget) e.currentTarget.classList.remove('pressed'); stopRepeat(); }
-
-window.addEventListener('keydown', e => {
-  const map = {ArrowUp:[-1,0], ArrowDown:[1,0], ArrowLeft:[0,-1], ArrowRight:[0,1], w:[-1,0], s:[1,0], a:[0,-1], d:[0,1]};
-  if(map[e.key]) { e.preventDefault(); tryMove(...map[e.key]); }
-});
-let touchStart = null;
-document.getElementById('grid').addEventListener('touchstart', e => { touchStart = {x:e.touches[0].clientX, y:e.touches[0].clientY}; }, {passive: true});
-document.getElementById('grid').addEventListener('touchend', e => {
-  if(!touchStart) return;
-  const dx = e.changedTouches[0].clientX - touchStart.x, dy = e.changedTouches[0].clientY - touchStart.y;
-  if(Math.hypot(dx,dy) > 25) { if(Math.abs(dx) > Math.abs(dy)) tryMove(0, dx>0?1:-1); else tryMove(dy>0?1:-1, 0); }
-  touchStart = null;
-});
-
-function toggleTheme() {
-  const html = document.documentElement, isDark = html.dataset.theme === 'dark';
-  const newTheme = isDark ? 'light' : 'dark';
-  html.dataset.theme = newTheme;
-  document.getElementById('themeIcon').textContent = newTheme === 'dark' ? '☀️' : '🌙';
-  localStorage.setItem('theme', newTheme);
-}
-function initTheme() {
-  const saved = localStorage.getItem('theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const theme = saved || (prefersDark ? 'dark' : 'light');
-  document.documentElement.dataset.theme = theme;
-  document.getElementById('themeIcon').textContent = theme === 'dark' ? '☀️' : '🌙';
-}
-
-document.getElementById('themeBtn').addEventListener('click', toggleTheme);
-document.getElementById('restartBtn').addEventListener('click', restartGame);
-document.getElementById('hintBtn').addEventListener('click', toggleHint);
-document.getElementById('prevLevelBtn').addEventListener('click', prevLevelAction);
-document.getElementById('nextLevelBtn').addEventListener('click', nextLevelAction);
-document.getElementById('winRestartBtn').addEventListener('click', () => restartGame());
-document.getElementById('winNextBtn').addEventListener('click', () => { if(currentLevel+1 < LEVELS.length) nextLevelAction(); else changeLevel(-currentLevel); });
-document.querySelectorAll('.dpad-btn').forEach(btn => {
-  btn.addEventListener('touchstart', handleDpadStart, {passive: false});
-  btn.addEventListener('touchend', handleDpadEnd);
-  btn.addEventListener('touchcancel', handleDpadCancel);
-  btn.addEventListener('mousedown', handleDpadStart);
-  btn.addEventListener('mouseup', handleDpadEnd);
-  btn.addEventListener('mouseleave', handleDpadCancel);
-});
-
-initTheme();
-initGame(0);
+    window.onload = initLevel;
 </script>
+
 </body>
 </html>
